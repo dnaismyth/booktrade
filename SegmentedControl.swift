@@ -22,12 +22,6 @@ import UIKit
         }
     }
     
-    @IBInspectable var borderColor: UIColor = UIColor.clear {
-        didSet {
-            layer.borderColor = borderColor.cgColor
-        }
-    }
-    
     @IBInspectable var height : CGFloat = 0.0 {
         didSet {
             layer.frame = CGRect(x: layer.frame.minX, y: layer.frame.minY, width: layer.frame.width, height: height)

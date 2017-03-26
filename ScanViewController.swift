@@ -9,26 +9,19 @@
 import UIKit
 import AVFoundation
 
-class ScanViewController: UIViewController, AVCaptureMetadataOutputObjectsDelegate, UIPickerViewDelegate, UIPickerViewDataSource {
+class ScanViewController: UIViewController, AVCaptureMetadataOutputObjectsDelegate {
     
-//    @IBOutlet var messageLabel:UILabel!
-//    @IBOutlet var topbar: UIView
-    @IBOutlet weak var titleField: UITextField!
-    @IBOutlet weak var authorField: UITextField!
+    @IBOutlet weak var headerLabel: UILabel!
     @IBOutlet weak var coverImage: UIImageView!
-    @IBOutlet weak var tradeOrSell: UISegmentedControl!
-    @IBOutlet weak var detailsTextField: UITextField!
-    @IBOutlet weak var priceField: UITextField!
-    @IBOutlet weak var ISBNLabel: UILabel!
-    @IBOutlet weak var conditionTextField: UITextField!
+    @IBOutlet weak var bookTitle: UILabel!
+    @IBOutlet weak var authorLabel: UILabel!
+
     
     var captureSession:AVCaptureSession?
     var videoPreviewLayer:AVCaptureVideoPreviewLayer?
     var qrCodeFrameView:UIView?
     var barcodeDetected : Bool = false
-    var pickerData: [String] = [String]()
-    var conditionPicker = UIPickerView()
-    var selectedCondition : String?
+    var capturedISBN : String?
     
     let undectedBarcodeMessage : String = "Cannot read barcode."
     let supportedCodeTypes = [AVMetadataObjectTypeUPCECode,
@@ -44,13 +37,7 @@ class ScanViewController: UIViewController, AVCaptureMetadataOutputObjectsDelega
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        self.conditionPicker.delegate = self
-        self.conditionPicker.dataSource = self
-        self.conditionTextField.inputView = self.conditionPicker
-        pickerData = ["Good", "Very Good"]
         self.setupScanner()
-        self.hideKeyboardWhenTappedAround()
-        self.priceField.isHidden = true;
         // Do any additional setup after loading the view.
     }
 
@@ -81,7 +68,10 @@ class ScanViewController: UIViewController, AVCaptureMetadataOutputObjectsDelega
             
             if metadataObj.stringValue != nil {
                 barcodeDetected = true
-                searchBookByBarcode(barcode: metadataObj.stringValue)
+                capturedISBN = metadataObj.stringValue
+                if((capturedISBN) != nil){
+                    searchBookByBarcode(barcode: capturedISBN!)
+                }
             }
             
             // Stop capture session
@@ -96,9 +86,8 @@ class ScanViewController: UIViewController, AVCaptureMetadataOutputObjectsDelega
         let url : String = Constants.GOODREADS.searchByIsbn.appending(barcode)
         GetRequest().HTTPGetXML(getUrl: url, token: nil) { (dictionary) in
            print(dictionary)
-            self.titleField.text = dictionary.value(forKey: "title") as! String?
-            self.authorField.text = dictionary.value(forKey: "name") as! String?
-            self.ISBNLabel.text = barcode
+            self.bookTitle.text = dictionary.value(forKey: "title") as! String?
+            self.authorLabel.text = dictionary.value(forKey: "name") as! String?
             let imageUrl : String = (dictionary.value(forKey: "image_url") as! String?)!
             self.setBookImage(imageUrl: imageUrl)
         }
@@ -163,35 +152,25 @@ class ScanViewController: UIViewController, AVCaptureMetadataOutputObjectsDelega
         }
     }
     
-    // The number of columns of data
-    func numberOfComponents(in pickerView: UIPickerView) -> Int {
-        return 1
-    }
-    
-    func pickerView(_ pickerView: UIPickerView, numberOfRowsInComponent component: Int) -> Int {
-        return pickerData.count;
-    }
-    
-    func pickerView(_ pickerView: UIPickerView, titleForRow row: Int, forComponent component: Int) -> String? {
-        print(pickerData[row])
-        selectedCondition = pickerData[row]
-        return pickerData[row]
-    }
-    
-    @IBAction func getTradeOrSellSelection(_ sender: UISegmentedControl) {
+    @IBAction func continueToPostingButton(_ sender: UIButton) {
         
-        switch sender.selectedSegmentIndex {
-            case 0:
-                print("Trade selected")
-                self.priceField.isHidden = true
-                break
-            case 1:
-                print("Sell selected")
-                self.priceField.isHidden = false
-                break
-            default:
-                break
+    }
+    
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        if segue.identifier == "bookPostingSegue" {
+            print("Continue to posting.")
+            let bookPostingView = segue.destination as! BookPostingViewController
+            bookPostingView.titleHolder = self.bookTitle.text
+            bookPostingView.authorHolder = self.authorLabel.text
+            if(self.capturedISBN != nil){
+                bookPostingView.isbnHolder = self.capturedISBN!
+            }
+            bookPostingView.imageHolder = self.coverImage.image
         }
+    }
+    
+    @IBAction func backToScannerButton(_ sender: UIButton) {
+        print("Back to scanner")
     }
     
 
