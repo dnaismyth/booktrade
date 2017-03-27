@@ -10,6 +10,9 @@ import UIKit
 
 class LoginViewController: UIViewController {
     
+    let userDefaults = Foundation.UserDefaults.standard
+
+    
     @IBOutlet weak var emailTextField: UITextField!
     @IBOutlet weak var passwordTextField: UITextField!
     
@@ -47,6 +50,34 @@ class LoginViewController: UIViewController {
         let alert = UIAlertController(title: alertTitle, message: alertMessage, preferredStyle: UIAlertControllerStyle.alert)
         alert.addAction(UIAlertAction(title: "Ok", style: UIAlertActionStyle.default, handler: nil))
         self.present(alert, animated: true, completion: nil)
+    }
+    
+    
+    @IBAction func userLogin(_ sender: UIButton) {
+        let email = validateEmail()
+        let password = validatePassword()
+        let form = "username=".appending(email).appending("&password=").appending(password).appending("&grant_type=password")
+        PostRequest().urlencodedPost(postUrl: Constants.API.login, form: form, completionHandler: { (dictionary) -> Void in
+            OperationQueue.main.addOperation{
+                if(dictionary["access_token"] != nil){
+                    self.storeLoginResponse(response: dictionary)
+                    let storyboard = UIStoryboard(name: "Main", bundle: nil)
+                    let viewController = storyboard.instantiateViewController(withIdentifier :"tabBarController")
+                    self.present(viewController, animated: true)
+                } else {
+                    self.showInvalidAlert(alertTitle: "Error Signing In", alertMessage: "The e-mail or password is incorrect.")
+                }
+            }
+        })
+    }
+    
+    private func storeLoginResponse(response : NSDictionary){
+        let access_token = "Bearer ".appending(response["access_token"] as! String)
+        let refresh_token = response["refresh_token"] as! String
+        let expires_in = response["expires_in"]
+        userDefaults.set( access_token , forKey: "access_token")
+        userDefaults.set( refresh_token, forKey: "refresh_token")
+        userDefaults.set( expires_in, forKey:"expires_in")
     }
     
 

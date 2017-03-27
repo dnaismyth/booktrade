@@ -48,7 +48,6 @@ class BookPostingViewController: UIViewController, UIPickerViewDelegate, UIPicke
     }
     
     func setBookData(){
-        print(authorHolder)
         if(authorHolder != nil){
             authorLabel.text = authorHolder!
         }
