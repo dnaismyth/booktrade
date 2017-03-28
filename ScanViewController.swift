@@ -22,6 +22,8 @@ class ScanViewController: UIViewController, AVCaptureMetadataOutputObjectsDelega
     var qrCodeFrameView:UIView?
     var barcodeDetected : Bool = false
     var capturedISBN : String?
+    var smallImageUrl : String?
+    var largeImageUrl: String?
     
     let undectedBarcodeMessage : String = "Cannot read barcode."
     let supportedCodeTypes = [AVMetadataObjectTypeUPCECode,
@@ -88,8 +90,11 @@ class ScanViewController: UIViewController, AVCaptureMetadataOutputObjectsDelega
            print(dictionary)
             self.bookTitle.text = dictionary.value(forKey: "title") as! String?
             self.authorLabel.text = dictionary.value(forKey: "name") as! String?
-            let imageUrl : String = (dictionary.value(forKey: "image_url") as! String?)!
-            self.setBookImage(imageUrl: imageUrl)
+            self.largeImageUrl = (dictionary.value(forKey: "image_url") as! String?)!
+            self.smallImageUrl = dictionary.value(forKey: "small_image_url") as! String?
+            if(self.largeImageUrl != nil){
+                self.setBookImage(imageUrl: self.largeImageUrl!)
+            }
         }
     }
     
@@ -162,6 +167,8 @@ class ScanViewController: UIViewController, AVCaptureMetadataOutputObjectsDelega
             let bookPostingView = segue.destination as! BookPostingViewController
             bookPostingView.titleHolder = self.bookTitle.text
             bookPostingView.authorHolder = self.authorLabel.text
+            bookPostingView.mainImageUrl = self.largeImageUrl   // main, larger image
+            bookPostingView.tmbImageUrl = self.smallImageUrl // thumbnail image
             if(self.capturedISBN != nil){
                 bookPostingView.isbnHolder = self.capturedISBN!
             }
