@@ -61,4 +61,30 @@ class GetRequest : NSObject, XMLParserDelegate{
     func parser(_ parser: XMLParser, parseErrorOccurred parseError: Error) {
         print("failure error: %@", parseError)
     }
+    
+    public func HTTPGet(getUrl : String, token: String, completionHandler: @escaping (CompletionHandler))  {
+        
+        let formatUrl = Constants.API.baseUrl.appending(getUrl)
+        print(formatUrl)
+        let url = URL(string:formatUrl)!
+        var request = URLRequest(url: url)
+        request.addValue(token, forHTTPHeaderField: "Authorization")
+        
+        let task = URLSession.shared.dataTask(with: request as URLRequest) { data, response, error in
+            guard error == nil else {
+                print(error ?? "Error sending get request.")
+                return
+            }
+            guard let data = data else {
+                print("Data is empty")
+                return
+            }
+            
+            let json = try! JSONSerialization.jsonObject(with: data, options: [])
+            completionHandler(json as! NSDictionary)
+        }
+        
+        task.resume()
+    }
+
 }

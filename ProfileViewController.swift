@@ -9,10 +9,15 @@
 import UIKit
 
 class ProfileViewController: UIViewController {
+    
+    let userDefaults = Foundation.UserDefaults.standard
 
     override func viewDidLoad() {
         super.viewDidLoad()
-
+        let token : String = userDefaults.string(forKey: "access_token")!
+        BookService().findBooksByUserId(token: token, userId: String(1001), page: String(0), size: String(5)) { (dictionary) in
+            print(dictionary)
+        }
         // Do any additional setup after loading the view.
     }
 

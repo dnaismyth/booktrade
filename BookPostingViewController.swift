@@ -11,7 +11,7 @@ import UIKit
 class BookPostingViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSource {
     
     let userDefaults = Foundation.UserDefaults.standard
-
+    let PROFILE_INDEX : Int = 1
     
     var imageHolder : UIImage?
     var tmbImageUrl : String?   // thumbnail image url
@@ -118,9 +118,9 @@ class BookPostingViewController: UIViewController, UIPickerViewDelegate, UIPicke
     // Create a new book posting
     @IBAction func createNewBookPosting(_ sender: UIButton) {
         let token : String = self.userDefaults.string(forKey: "access_token")!
-        let dictionary = BookService().createNewBookPosting(book: self.buildBookDictionary(), token: token)
-        if(dictionary["id"] != nil){
+        BookService().createNewBookPosting(book: self.buildBookDictionary(), token: token) { (dictionary) in
             print(dictionary)
+            self.tabBarController?.selectedIndex = self.PROFILE_INDEX   // go to profile page
         }
     }
     

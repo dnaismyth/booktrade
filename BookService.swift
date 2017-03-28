@@ -10,11 +10,18 @@ import Foundation
 
 class BookService {
     
-    public func createNewBookPosting(book : [String : AnyObject], token : String) -> NSDictionary {
-        var response : NSDictionary = [:]
+    typealias FinishedFetchingData = (NSDictionary) -> ()
+
+    public func createNewBookPosting(book : [String : AnyObject], token : String, completed : @escaping FinishedFetchingData) {
         PostRequest().jsonPost(postUrl: Constants.API.createBookPosting, token: token, body: book) { (dictionary) in
-            response = dictionary
+            completed(dictionary)
         }
-        return response
+    }
+    
+    public func findBooksByUserId(token : String, userId : String, page : String, size: String, completed : @escaping FinishedFetchingData) {
+        let url : String = Constants.API.getBooksByUserId.replacingOccurrences(of: "{userId}", with: userId).appending("?page=").appending(page).appending("&size=").appending(size)
+        GetRequest().HTTPGet(getUrl: url, token: token) { (dictionary) in
+            completed(dictionary)
+        }
     }
 }
