@@ -1,4 +1,4 @@
-//
+    //
 //  UserService.swift
 //  booktrader
 //
@@ -10,8 +10,11 @@ import Foundation
 
 class UserService {
     
+    typealias FinishedFetchingData = (NSDictionary) -> ()
+    
     let userDefaults = Foundation.UserDefaults.standard
     
+    // Save the current user's device token
     func storeUserPlatformToken(){
         let device_token = userDefaults.string(forKey: "device_token")
         let access_token = userDefaults.string(forKey: "access_token")
@@ -23,5 +26,21 @@ class UserService {
                 print(dictionary)
             }
         })
+    }
+    
+    // Get a user's profile information by their id
+    func getUserProfile(userId : String?, completed : @escaping FinishedFetchingData){
+        var url : String = Constants.API.getUserProfile
+        if userId != nil {
+            url = Constants.API.getUserProfile.appending("?id=").appending(userId!)
+        }
+        
+        let access_token = userDefaults.string(forKey: "access_token")
+        GetRequest().HTTPGet(getUrl: url, token: access_token!) { (dictionary) in
+            OperationQueue.main.addOperation {
+                print(dictionary)
+                completed(dictionary)
+            }
+        }
     }
 }
