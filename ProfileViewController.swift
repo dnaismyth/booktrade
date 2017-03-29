@@ -124,7 +124,12 @@ class ProfileViewController: UIViewController, UICollectionViewDelegate, UIColle
         
     }
     
-    
+    @IBAction func unwindToProfile(segue: UIStoryboardSegue) {
+        if let changeAvatarView = segue.source as? ChangeAvatarViewController {
+            self.avatarImage.image = changeAvatarView.imageView.image
+        }
+    }
+
 
     /*
     // MARK: - Navigation

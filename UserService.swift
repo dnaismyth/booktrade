@@ -39,6 +39,10 @@ class UserService {
         GetRequest().HTTPGet(getUrl: url, token: access_token!) { (dictionary) in
             OperationQueue.main.addOperation {
                 print(dictionary)
+                if(userId == nil){
+                    let userId : Int = dictionary["id"] as! Int
+                    self.userDefaults.set(userId, forKey: "user_id")    // store the current user id
+                }
                 completed(dictionary)
             }
         }
