@@ -43,4 +43,15 @@ class UserService {
             }
         }
     }
+    
+    // Get temporary s3 token to allow put into S3 bucket
+    func getTemporaryS3Token(completed : @escaping FinishedFetchingData){
+        let access_token = userDefaults.string(forKey: "access_token")
+        GetRequest().HTTPGet(getUrl: Constants.API.getS3Token, token: access_token!) { (dictionary) in
+            OperationQueue.main.addOperation {
+                print(dictionary)
+                completed(dictionary)
+            }
+        }
+    }
 }

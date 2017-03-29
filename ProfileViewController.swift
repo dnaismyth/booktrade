@@ -8,7 +8,7 @@
 
 import UIKit
 
-class ProfileViewController: UIViewController, UICollectionViewDelegate, UICollectionViewDataSource {
+class ProfileViewController: UIViewController, UICollectionViewDelegate, UICollectionViewDataSource, UIPopoverPresentationControllerDelegate {
     
     let userDefaults = Foundation.UserDefaults.standard
     
@@ -27,6 +27,9 @@ class ProfileViewController: UIViewController, UICollectionViewDelegate, UIColle
         super.viewDidLoad()
         self.bookCollectionView.delegate = self
         self.bookCollectionView.dataSource = self
+        let tapGestureRecognizer = UITapGestureRecognizer(target: self, action: #selector(avatarTapped(tapGestureRecognizer:)))
+        avatarImage.isUserInteractionEnabled = true
+        avatarImage.addGestureRecognizer(tapGestureRecognizer)
         //self.loadUserBooks(userId: userId!) // change this to dynamically set user id
         // Do any additional setup after loading the view.
     }
@@ -39,6 +42,33 @@ class ProfileViewController: UIViewController, UICollectionViewDelegate, UIColle
         // Dispose of any resources that can be recreated.
     }
     
+    func avatarTapped(tapGestureRecognizer: UITapGestureRecognizer)
+    {
+        let avatar = tapGestureRecognizer.view as! UIImageView
+        self.performSegue(withIdentifier: "changeAvatarSegue", sender: self)
+        // Your action
+    }
+    
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        if segue.identifier == "changeAvatarSegue" {
+            let popupMenu = segue.destination
+            popupMenu.modalPresentationStyle = UIModalPresentationStyle.popover
+            let controller = popupMenu.popoverPresentationController
+            if controller != nil {
+                controller?.delegate = self
+                controller?.sourceView = self.view
+                controller?.sourceRect = CGRect(x: self.view.layer.bounds.midX, y: self.view.layer.bounds.maxY, width: 0, height: 0)
+                controller?.backgroundColor = UIColor(red:1.00, green:1.00, blue:1.00, alpha:0.5)
+                //controller?.permittedArrowDirections = UIPopoverArrowDirection.init(rawValue: 0)
+           }
+        }
+    }
+    
+    func adaptivePresentationStyle(for controller: UIPresentationController, traitCollection: UITraitCollection) -> UIModalPresentationStyle
+    {
+        return UIModalPresentationStyle.none
+    }
+
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         return self.bookContent.count
     }
