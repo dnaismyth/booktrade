@@ -51,7 +51,9 @@ class ChangeAvatarViewController: UIViewController, UIImagePickerControllerDeleg
         dismiss(animated: true, completion: nil)
         print(imageView)
         let s3KeyPrefix : String = userDefaults.string(forKey: "user_id")!.appending("/AVATAR_")
-        S3Service().startUploadingImage(selectedImageUrl: selectedImageUrl, image: imageView.image!, keyPrefix: s3KeyPrefix)
+        S3Service().startUploadingImage(selectedImageUrl: selectedImageUrl, image: imageView.image!, keyPrefix: s3KeyPrefix) { (avatar) in
+            UserService().updateUserAvatar(avatar: avatar)
+        }
         performSegue(withIdentifier: "unwindToProfile", sender: self)
     }
     

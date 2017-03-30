@@ -48,6 +48,19 @@ class UserService {
         }
     }
     
+    func updateUserAvatar(avatar : String) {
+        let access_token = userDefaults.string(forKey: "access_token")
+        let data : [String : AnyObject] = [
+            "avatar" : avatar as AnyObject
+        ]
+        PutRequest().jsonPut(postUrl: Constants.API.updateUserAvatar, token: access_token!, body: data) { (dictionary) in
+            OperationQueue.main.addOperation{
+                print(dictionary)
+            }
+        }
+        
+    }
+    
     // Get temporary s3 token to allow put into S3 bucket
     func getTemporaryS3Token(completed : @escaping FinishedFetchingData){
         let access_token = userDefaults.string(forKey: "access_token")

@@ -14,6 +14,9 @@ import Photos
 // Class to handle S3 Services for image uploading
 class S3Service {
     
+    typealias FinishedUploading = (String) -> ()
+
+    
     init(){
         let credentialsProvider = AWSCognitoCredentialsProvider(regionType: AWSRegionType.USWest2, identityPoolId: Constants.S3.poolId)
         let configuration = AWSServiceConfiguration(region: AWSRegionType.USWest2, credentialsProvider: credentialsProvider)
@@ -21,7 +24,7 @@ class S3Service {
     }
     
    
-    func startUploadingImage(selectedImageUrl : NSURL?, image : UIImage, keyPrefix: String)
+    func startUploadingImage(selectedImageUrl : NSURL?, image : UIImage, keyPrefix: String, completed : @escaping FinishedUploading)
     {
         var localFileName:String?
         if let imageToUploadUrl = selectedImageUrl
@@ -61,6 +64,7 @@ class S3Service {
                 if(uploadRequest != nil){
                     let s3URL : String = "https://\(Constants.S3.bucket).s3.amazonaws.com/\(uploadRequest!.key!)"
                     print("Uploaded to:\n\(s3URL)")
+                    completed(s3URL)
                 }
                 // Remove locally stored file
                 self.remoteImageWithUrl(fileName: localFileName!)
