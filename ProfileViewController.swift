@@ -22,6 +22,7 @@ class ProfileViewController: UIViewController, UICollectionViewDelegate, UIColle
     
     var ownersBooks : [String : AnyObject] = [:]
     var bookContent : NSArray = []
+    var cellToPass : BookCollectionViewCell?
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -30,6 +31,7 @@ class ProfileViewController: UIViewController, UICollectionViewDelegate, UIColle
         let tapGestureRecognizer = UITapGestureRecognizer(target: self, action: #selector(avatarTapped(tapGestureRecognizer:)))
         avatarImage.isUserInteractionEnabled = true
         avatarImage.addGestureRecognizer(tapGestureRecognizer)
+        avatarImage.contentMode = UIViewContentMode.scaleAspectFill
         //self.loadUserBooks(userId: userId!) // change this to dynamically set user id
         // Do any additional setup after loading the view.
     }
@@ -44,12 +46,13 @@ class ProfileViewController: UIViewController, UICollectionViewDelegate, UIColle
     
     func avatarTapped(tapGestureRecognizer: UITapGestureRecognizer)
     {
-        let avatar = tapGestureRecognizer.view as! UIImageView
+        //let avatar = tapGestureRecognizer.view as! UIImageView
         self.performSegue(withIdentifier: "changeAvatarSegue", sender: self)
         // Your action
     }
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        
         if segue.identifier == "changeAvatarSegue" {
             let popupMenu = segue.destination
             popupMenu.modalPresentationStyle = UIModalPresentationStyle.popover
@@ -62,6 +65,27 @@ class ProfileViewController: UIViewController, UICollectionViewDelegate, UIColle
                 //controller?.permittedArrowDirections = UIPopoverArrowDirection.init(rawValue: 0)
            }
         }
+        
+        if segue.identifier == "bookInfoSegue" {
+            let bookInfoView = segue.destination as! BookPopupViewController
+            if(cellToPass != nil){
+                self.setPopupInfo(bookPopupInfo: bookInfoView, cell: cellToPass!)
+            }
+        }
+    }
+    
+    private func topMostController() -> UIViewController {
+        var topController: UIViewController = UIApplication.shared.keyWindow!.rootViewController!
+        while (topController.presentedViewController != nil) {
+            topController = topController.presentedViewController!
+        }
+        return topController
+    }
+    
+    private func setPopupInfo (bookPopupInfo : BookPopupViewController, cell : BookCollectionViewCell){
+            bookPopupInfo.authorToPass = cell.author
+            bookPopupInfo.titleToPass = cell.title
+            bookPopupInfo.coverImageToPass = cell.coverImage.image
     }
     
     func adaptivePresentationStyle(for controller: UIPresentationController, traitCollection: UITraitCollection) -> UIModalPresentationStyle
@@ -90,12 +114,18 @@ class ProfileViewController: UIViewController, UICollectionViewDelegate, UIColle
         }
         
         if let imageUrl : String = book ["imageUrl"] as? String {
-            print("image url is: \(imageUrl)")
             self.setBookImage(imageUrl: imageUrl, cell: cell)
         }
         
         return cell
     }
+    
+    func collectionView(_ collectionView: UICollectionView, didDeselectItemAt indexPath: IndexPath) {
+        print("Selected!")
+        cellToPass = collectionView.cellForItem(at: indexPath) as? BookCollectionViewCell
+        performSegue(withIdentifier: "bookInfoSegue", sender: self)
+    }
+    
     
     func setBookImage(imageUrl: String, cell : BookCollectionViewCell){
         print(cell)

@@ -19,7 +19,7 @@ class UserService {
         let device_token = userDefaults.string(forKey: "device_token")
         let access_token = userDefaults.string(forKey: "access_token")
         let data : [String:AnyObject] = [
-            "deviceToken" : device_token as AnyObject
+            "value" : device_token as AnyObject
         ]
         PutRequest().jsonPut(postUrl: Constants.API.storeDeviceToken, token: access_token!, body: data, completionHandler: { (dictionary) -> Void in
             OperationQueue.main.addOperation {
@@ -51,7 +51,7 @@ class UserService {
     func updateUserAvatar(avatar : String) {
         let access_token = userDefaults.string(forKey: "access_token")
         let data : [String : AnyObject] = [
-            "avatar" : avatar as AnyObject
+            "value" : avatar as AnyObject
         ]
         PutRequest().jsonPut(postUrl: Constants.API.updateUserAvatar, token: access_token!, body: data) { (dictionary) in
             OperationQueue.main.addOperation{
