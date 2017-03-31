@@ -39,7 +39,7 @@ class TabBarController: UITabBarController, UITabBarControllerDelegate {
         let profileView : ProfileViewController = profileNavController.viewControllers[0] as! ProfileViewController
         UserService().getUserProfile(userId: nil) { (dictionary) in
             let userId : Int = dictionary["id"] as! Int
-            profileView.loadUserBooks(userId: String(userId))
+            profileView.loadUserAvailableBooks(userId: String(userId))
             profileView.userId = String(userId)
             profileView.userNameLabel.text = dictionary["name"] as? String
             if let location : [String : AnyObject] = dictionary["location"] as? [String : AnyObject]{

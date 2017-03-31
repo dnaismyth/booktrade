@@ -19,6 +19,9 @@ class BookCollectionViewCell: UICollectionViewCell {
     // Book Author
     var author : String?
     
+    // Book id
+    var bookId : Int?
+    
     // Book barcode
     var barcode : String?
     
@@ -37,7 +40,11 @@ class BookCollectionViewCell: UICollectionViewCell {
     // Owner avatar of the book posting
     var ownerAvatar : String?
     
+    // Id of the book owner
+    var ownerId : Int?
+    
     // Owner's location
     var location : String?
+    
     
 }

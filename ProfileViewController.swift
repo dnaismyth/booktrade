@@ -12,7 +12,7 @@ class ProfileViewController: UIViewController, UICollectionViewDelegate, UIColle
     
     let userDefaults = Foundation.UserDefaults.standard
     
-    var userId : String?
+    var userId : String?    // id of the user's profile in view
     
     @IBOutlet weak var bookCollectionView: UICollectionView!
     @IBOutlet weak var avatarImage: UIImageView!
@@ -32,8 +32,6 @@ class ProfileViewController: UIViewController, UICollectionViewDelegate, UIColle
         avatarImage.isUserInteractionEnabled = true
         avatarImage.addGestureRecognizer(tapGestureRecognizer)
         avatarImage.contentMode = UIViewContentMode.scaleAspectFill
-        //self.loadUserBooks(userId: userId!) // change this to dynamically set user id
-        // Do any additional setup after loading the view.
     }
     
     override func viewDidAppear(_ animated: Bool) {
@@ -83,9 +81,11 @@ class ProfileViewController: UIViewController, UICollectionViewDelegate, UIColle
     }
     
     private func setPopupInfo (bookPopupInfo : BookPopupViewController, cell : BookCollectionViewCell){
-            bookPopupInfo.authorToPass = cell.author
-            bookPopupInfo.titleToPass = cell.title
-            bookPopupInfo.coverImageToPass = cell.coverImage.image
+        bookPopupInfo.authorToPass = cell.author
+        bookPopupInfo.titleToPass = cell.title
+        bookPopupInfo.coverImageToPass = cell.coverImage.image
+        bookPopupInfo.ownerIdToPass = cell.ownerId
+        bookPopupInfo.currentBookId = cell.bookId
     }
     
     func adaptivePresentationStyle(for controller: UIPresentationController, traitCollection: UITraitCollection) -> UIModalPresentationStyle
@@ -101,6 +101,7 @@ class ProfileViewController: UIViewController, UICollectionViewDelegate, UIColle
         let cell = bookCollectionView.dequeueReusableCell(withReuseIdentifier: "bookCell", for: indexPath) as! BookCollectionViewCell
         let book = self.bookContent[indexPath.item] as! [String : AnyObject]
         let owner = book["owner"] as! [String : AnyObject]
+        cell.bookId = book["id"] as! Int
         cell.author = book["author"] as? String
         cell.title = book["title"] as? String
         cell.status = book["status"] as? String
@@ -109,6 +110,7 @@ class ProfileViewController: UIViewController, UICollectionViewDelegate, UIColle
         cell.itemDescription = book["description"] as? String
         cell.ownerName = owner["name"] as? String
         cell.ownerAvatar = owner["avatar"] as? String
+        cell.ownerId = owner["id"] as? Int
         if let location : [String : AnyObject] = owner["location"] as? [String : AnyObject]{
             cell.location = location["city"] as? String
         }
@@ -138,20 +140,45 @@ class ProfileViewController: UIViewController, UICollectionViewDelegate, UIColle
         }
     }
     
-    func loadUserBooks(userId : String){
+    // Load all of the books that are currently available by the user
+    func loadUserAvailableBooks(userId : String){
+        self.bookContent = []
         let token : String = userDefaults.string(forKey: "access_token")!
-        BookService().findBooksByUserId(token: token, userId: userId, page: String(0), size: String(5)) { (dictionary) in
+        BookService().findAvailableBooksByUserId(token: token, userId: userId, page: String(0), size: String(5)) { (dictionary) in
             OperationQueue.main.addOperation{
-                self.bookCollectionView.reloadData()
                 self.bookContent = dictionary.value(forKey: "content") as! NSArray
+                self.bookCollectionView.reloadData()
                 print("Book content count is...\(self.bookContent.count)")
                 print(self.bookContent)
             }
         }
     }
     
+    // Load all of the books that are no longer available by the user
+    func loadUserUnavailableBooks(userId: String){
+        self.bookContent = []
+        let token : String = userDefaults.string(forKey: "access_token")!
+        BookService().findUnavailableBooksByUserId(token: token, userId: userId, page: String(0), size: String(5)) { (dictionary) in
+            OperationQueue.main.addOperation {
+                self.bookContent = dictionary.value(forKey: "content") as! NSArray
+                self.bookCollectionView.reloadData()
+            }
+        }
+    }
+    
     @IBAction func bookStatusView(_ sender: UISegmentedControl) {
-        
+        switch sender.selectedSegmentIndex {
+        case 0:
+            // Load books that are available
+            self.loadUserAvailableBooks(userId: self.userId!)
+            break
+        case 1:
+            // Load unavailable books
+            self.loadUserUnavailableBooks(userId: self.userId!)
+            break
+        default:
+            break
+        }
     }
     
     @IBAction func unwindToProfile(segue: UIStoryboardSegue) {
