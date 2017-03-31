@@ -15,6 +15,7 @@ import Photos
 class S3Service {
     
     typealias FinishedUploading = (String) -> ()
+    typealias FinishedWritingFile = (NSURL) -> ()
 
     
     init(){
@@ -24,14 +25,15 @@ class S3Service {
     }
     
    
-    func startUploadingImage(selectedImageUrl : NSURL?, image : UIImage, keyPrefix: String, completed : @escaping FinishedUploading)
+    func uploadImageFromLibrary(selectedImageUrl : NSURL?, image : UIImage, keyPrefix: String, completed : @escaping FinishedUploading)
     {
         var localFileName:String?
+        print(selectedImageUrl!)
         if let imageToUploadUrl = selectedImageUrl
         {
-            
             let phResult = PHAsset.fetchAssets(withALAssetURLs: [imageToUploadUrl as URL], options: nil)
             localFileName = phResult.firstObject?.value(forKey: "filename") as! String?
+
         }
         
         if localFileName == nil
@@ -69,6 +71,43 @@ class S3Service {
                 // Remove locally stored file
                 self.remoteImageWithUrl(fileName: localFileName!)
                 
+            }
+                
+            else {
+                print("Unexpected empty result.")
+            }
+            return nil
+        }
+    }
+    
+    func uploadImageFromCamera(fileName : String, image : UIImage, keyPrefix : String, completed : @escaping FinishedUploading){
+        
+        let uploadRequest = AWSS3TransferManagerUploadRequest()
+        uploadRequest?.body = self.generateImageUrl(fileName: fileName, image: image) as URL
+        uploadRequest?.key = keyPrefix.appending(fileName).appending("_").appending(UUID().uuidString)
+        print("Key is: \(uploadRequest?.key!)")
+        
+        uploadRequest?.bucket = Constants.S3.bucket
+        uploadRequest?.contentType = "image/jpeg"
+        
+        
+        let transferManager = AWSS3TransferManager.default()
+        
+        // Perform file upload
+        transferManager.upload(uploadRequest!).continueWith { (task) -> AnyObject! in
+            
+            if let error = task.error {
+                print("Upload failed with error: (\(error.localizedDescription))")
+            }
+            
+            if task.result != nil {
+                if(uploadRequest != nil){
+                    let s3URL : String = "https://\(Constants.S3.bucket).s3.amazonaws.com/\(uploadRequest!.key!)"
+                    print("Uploaded to:\n\(s3URL)")
+                    completed(s3URL)
+                }
+                // Remove locally stored file
+                self.remoteImageWithUrl(fileName: fileName)
             }
                 
             else {

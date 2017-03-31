@@ -10,6 +10,7 @@ import UIKit
 
 class ChangeAvatarViewController: UIViewController, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
     
+    // MARK : - Properties
     var imagePicker = UIImagePickerController()
     var imageView = UIImageView()
     var selectedImageUrl: NSURL!
@@ -35,46 +36,115 @@ class ChangeAvatarViewController: UIViewController, UIImagePickerControllerDeleg
             imagePicker.sourceType = .savedPhotosAlbum;
             imagePicker.allowsEditing = false
             self.present(imagePicker, animated: true, completion: nil)
+        } else {
+            self.showNoCameraAlert()
         }
     }
     
     // Take photo
     @IBAction func takePhoto(_ sender: UIButton) {
-        
+        if UIImagePickerController.isSourceTypeAvailable(UIImagePickerControllerSourceType.camera) {
+            imagePicker.delegate = self
+            imagePicker.sourceType = UIImagePickerControllerSourceType.camera;
+            imagePicker.allowsEditing = false
+            self.present(imagePicker, animated: true, completion: nil)
+        } else {
+            self.showNoCameraAlert()
+        }
+    }
+    
+    func showNoCameraAlert(){
+        let alertVC = UIAlertController(
+            title: "Camera not Available",
+            message: "Please turn camera availability on through your device settings menu.",
+            preferredStyle: .alert)
+        let okAction = UIAlertAction(
+            title: "OK",
+            style:.default,
+            handler: nil)
+        alertVC.addAction(okAction)
+        present(
+            alertVC,
+            animated: true,
+            completion: nil)
     }
     
     func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [String : Any]) {
-        //first run if its coming from photo album
-        selectedImageUrl = info[UIImagePickerControllerReferenceURL] as! NSURL
-        imageView.image = info[UIImagePickerControllerOriginalImage] as? UIImage
-        imageView.contentMode = UIViewContentMode.scaleAspectFill
-        dismiss(animated: true, completion: nil)
-        print(imageView)
-        let s3KeyPrefix : String = userDefaults.string(forKey: "user_id")!.appending("/AVATAR_")
-        S3Service().startUploadingImage(selectedImageUrl: selectedImageUrl, image: imageView.image!, keyPrefix: s3KeyPrefix) { (avatar) in
-            UserService().updateUserAvatar(avatar: avatar)
+        var image : UIImage?
+        if(picker.sourceType == .camera){
+            // If coming from camera
+            let tempFileUrl : String = "camera"
+            image = info[UIImagePickerControllerOriginalImage] as? UIImage
+            self.s3UploadFromCamera(image: image, fileName: tempFileUrl)
+        }  else {
+            // If coming from album
+            selectedImageUrl = info[UIImagePickerControllerReferenceURL] as! NSURL
+            image = info[UIImagePickerControllerOriginalImage] as? UIImage
+            self.s3UploadFromLibrary(image: image, selectedImageUrl : selectedImageUrl)
         }
+
+        
         performSegue(withIdentifier: "unwindToProfile", sender: self)
+
     }
     
+    func saveImage (image : UIImage, path: String){
+        let data = UIImageJPEGRepresentation(image, 0.6)
+        let filePath = NSURL(fileURLWithPath: NSTemporaryDirectory().appending(path))
+        do{
+            try data!.write(to: filePath as URL , options: .atomic)
+        } catch {
+            print(error)
+        }
+    }
+    
+    func fileInDocumentsDirectory(fileName: String) -> NSURL {
+        let documentsUrl = FileManager.default.urls(for: .documentDirectory, in:.userDomainMask).first!
+        return documentsUrl.appendingPathComponent(fileName) as NSURL
+    }
+    
+    func s3UploadFromLibrary(image : UIImage?, selectedImageUrl : NSURL){
+        if(image != nil){
+            imageView.image = image?.resized(withPercentage: 0.1)
+            imageView.contentMode = UIViewContentMode.scaleAspectFill
+            imageSelected = true
+            dismiss(animated: true, completion: nil)
+            print(imageView)
+            let s3KeyPrefix : String = userDefaults.string(forKey: "user_id")!.appending("/AVATAR_")
+            S3Service().uploadImageFromLibrary(selectedImageUrl: selectedImageUrl, image: imageView.image!, keyPrefix: s3KeyPrefix) { (avatar) in
+                OperationQueue.main.addOperation {
+                    UserService().updateUserAvatar(avatar: avatar)
+                }
+            }
+        }
+    }
+    
+    func s3UploadFromCamera(image: UIImage?, fileName : String){
+        if(image != nil){
+            imageView.image = image?.resized(withPercentage: 0.1)
+            imageView.contentMode = UIViewContentMode.scaleAspectFill
+            imageSelected = true
+            dismiss(animated: true, completion: nil)
+            print(imageView)
+            let s3KeyPrefix : String = userDefaults.string(forKey: "user_id")!.appending("/AVATAR_")
+            S3Service().uploadImageFromCamera(fileName: fileName, image: imageView.image!, keyPrefix: s3KeyPrefix) { (avatar) in
+                OperationQueue.main.addOperation {
+                    UserService().updateUserAvatar(avatar: avatar)
+                }
+            }
+        }
+    }
+  
+    
+    // MARK : - Navigation
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         if segue.identifier == "unwindToProfile" {
+            print(imageSelected)
             if(imageSelected){
                 let profileView = segue.destination as! ProfileViewController
                 profileView.avatarImage.image = self.imageView.image
             }
         }
     }
-    
-
-    /*
-    // MARK: - Navigation
-
-    // In a storyboard-based application, you will often want to do a little preparation before navigation
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        // Get the new view controller using segue.destinationViewController.
-        // Pass the selected object to the new view controller.
-    }
-    */
-
+   
 }
