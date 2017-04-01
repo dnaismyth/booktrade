@@ -8,7 +8,7 @@
 
 import UIKit
 
-class BookPopupViewController: UIViewController, UITextViewDelegate {
+class BookPopupViewController: UIViewController, UITextViewDelegate, UIPopoverPresentationControllerDelegate {
     
     // MARK: - Properties
     let userDefaults = Foundation.UserDefaults.standard
@@ -20,9 +20,12 @@ class BookPopupViewController: UIViewController, UITextViewDelegate {
     var priceToPass : String?
     var ownerIdToPass : Int?
     var ownerNameToPass : String?
+    var ownerLocation : String?
+    var bookInformation : String?
+    var bookCondition : String?
     var ownerAvatarToPass : String?
     var currentBookId : Int?
-    let commentTextPlaceholder : String = "Interested? Send a message..."
+    let commentTextPlaceholder : String = "Interested?  Send a message..."
     
     @IBOutlet weak var bookCoverImage: UIImageView!
     @IBOutlet weak var bookTitle: UILabel!
@@ -113,10 +116,20 @@ class BookPopupViewController: UIViewController, UITextViewDelegate {
             let comment = buildCommentData(commentText: commentToSend!)
             print(comment)
             BookService().createBookComment(token: token, bookId: String(self.currentBookId!), comment: comment, completed: { (dictionary) in
-                print(dictionary)
+                OperationQueue.main.addOperation {
+                    if let id = dictionary["id"] {
+                        print(id)
+                        self.commentTextView.text = self.commentTextPlaceholder
+                        self.commentTextView.textColor = UIColor.lightGray
+                    } else {
+                        // TODO: Show error alert
+                    }
+                }
             })
         }
     }
+    
+    @IBAction func unwindToBookView(segue: UIStoryboardSegue) {}
     
     private func buildCommentData(commentText : String) -> [String : AnyObject] {
         var comment : [String : AnyObject] = [:]
@@ -125,14 +138,40 @@ class BookPopupViewController: UIViewController, UITextViewDelegate {
     }
     
 
-    /*
     
-
-    // In a storyboard-based application, you will often want to do a little preparation before navigation
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        // Get the new view controller using segue.destinationViewController.
-        // Pass the selected object to the new view controller.
+        if(segue.identifier == "moreBookInfoSegue"){
+            let bookInfoPopup = segue.destination as! MoreBookInfoViewController
+            self.passBookInformation(vc: bookInfoPopup)
+            let controller = bookInfoPopup.popoverPresentationController
+            if controller != nil {
+                controller?.delegate = self
+                controller?.sourceView = self.view
+                controller?.sourceRect = CGRect(x: self.view.layer.bounds.midX, y: self.view.layer.bounds.midY, width: 0, height: 0)
+                controller?.backgroundColor = UIColor(red:1.00, green:1.00, blue:1.00, alpha:0.5)
+                controller?.permittedArrowDirections = UIPopoverArrowDirection.init(rawValue: 0)
+            }
+        }
     }
-    */
+    
+    private func passBookInformation(vc : MoreBookInfoViewController){
+        if(ownerLocation != nil){
+            vc.locationHolder = ownerLocation!
+        }
+        
+        if(bookCondition != nil){
+            vc.conditionHolder = bookCondition!
+        }
+        
+        if(bookInformation != nil){
+            vc.informationHolder = bookInformation!
+        }
+    }
+    
+    func adaptivePresentationStyle(for controller: UIPresentationController, traitCollection: UITraitCollection) -> UIModalPresentationStyle
+    {
+        return UIModalPresentationStyle.none
+    }
+ 
 
 }

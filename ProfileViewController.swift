@@ -72,20 +72,15 @@ class ProfileViewController: UIViewController, UICollectionViewDelegate, UIColle
         }
     }
     
-    private func topMostController() -> UIViewController {
-        var topController: UIViewController = UIApplication.shared.keyWindow!.rootViewController!
-        while (topController.presentedViewController != nil) {
-            topController = topController.presentedViewController!
-        }
-        return topController
-    }
-    
     private func setPopupInfo (bookPopupInfo : BookPopupViewController, cell : BookCollectionViewCell){
         bookPopupInfo.authorToPass = cell.author
         bookPopupInfo.titleToPass = cell.title
         bookPopupInfo.coverImageToPass = cell.coverImage.image
         bookPopupInfo.ownerIdToPass = cell.ownerId
         bookPopupInfo.currentBookId = cell.bookId
+        bookPopupInfo.ownerLocation = cell.location
+        bookPopupInfo.bookInformation = cell.itemDescription
+        bookPopupInfo.bookCondition = cell.condition
     }
     
     func adaptivePresentationStyle(for controller: UIPresentationController, traitCollection: UITraitCollection) -> UIModalPresentationStyle
