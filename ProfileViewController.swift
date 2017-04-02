@@ -96,7 +96,7 @@ class ProfileViewController: UIViewController, UICollectionViewDelegate, UIColle
         let cell = bookCollectionView.dequeueReusableCell(withReuseIdentifier: "bookCell", for: indexPath) as! BookCollectionViewCell
         let book = self.bookContent[indexPath.item] as! [String : AnyObject]
         let owner = book["owner"] as! [String : AnyObject]
-        cell.bookId = book["id"] as! Int
+        cell.bookId = book["id"] as? Int
         cell.author = book["author"] as? String
         cell.title = book["title"] as? String
         cell.status = book["status"] as? String

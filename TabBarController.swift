@@ -29,14 +29,27 @@ class TabBarController: UITabBarController, UITabBarControllerDelegate {
             let view : ProfileViewController = segue.destination as! ProfileViewController
             view.bioLabel.text = "Testing"
             view.userNameLabel.text = "Dayna"
-            
         }
     }
     
-    
     func tabBarController(_ tabBarController: UITabBarController, didSelect viewController: UIViewController) {
-        let profileNavController = self.viewControllers![3] as! UINavigationController
-        let profileView : ProfileViewController = profileNavController.viewControllers[0] as! ProfileViewController
+        if(viewController.restorationIdentifier == "profileNavigationController"){
+            let profileNavController = viewController as! UINavigationController
+            let profileView : ProfileViewController = profileNavController.viewControllers[0] as! ProfileViewController
+            self.getUserProfile(profileView: profileView)
+        }
+        
+        if (viewController.restorationIdentifier == "messageNavigationController"){
+            let messageNavController = viewController as! UINavigationController
+            let messageView : MessagesViewController = messageNavController.viewControllers[0] as! MessagesViewController
+            messageView.loadRecipientConversations()
+        }
+
+    }
+    
+    
+    
+    func getUserProfile(profileView : ProfileViewController){
         UserService().getUserProfile(userId: nil) { (dictionary) in
             let userId : Int = dictionary["id"] as! Int
             profileView.loadUserAvailableBooks(userId: String(userId))
@@ -45,12 +58,11 @@ class TabBarController: UITabBarController, UITabBarControllerDelegate {
             if let location : [String : AnyObject] = dictionary["location"] as? [String : AnyObject]{
                 profileView.locationLabel.text = location["city"] as? String
             }
-          
+            
             if let avatarUrl : String = dictionary["avatar"] as? String{
                 self.setAvatarImage(imageUrl: avatarUrl, imageView: profileView.avatarImage)
             }
         }
-        
     }
     
     func setAvatarImage(imageUrl: String, imageView : UIImageView){
