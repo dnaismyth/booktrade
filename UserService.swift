@@ -48,6 +48,7 @@ class UserService {
         }
     }
     
+    // Update the current user's avatar
     func updateUserAvatar(avatar : String) {
         let access_token = userDefaults.string(forKey: "access_token")
         let data : [String : AnyObject] = [
@@ -58,7 +59,14 @@ class UserService {
                 print(dictionary)
             }
         }
-        
+    }
+    
+    // Update the user's location
+    func updateUserLocation(location : [String : AnyObject], completed : @escaping FinishedFetchingData){
+        let access_token = userDefaults.string(forKey: "access_token")!
+        PutRequest().jsonPut(postUrl: Constants.API.updateUserLocation, token: access_token, body: location) { (dictionary) in
+            completed(dictionary)
+        }
     }
     
     // Get temporary s3 token to allow put into S3 bucket
