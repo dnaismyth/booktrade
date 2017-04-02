@@ -14,12 +14,13 @@ class ConversationTableViewCell: UITableViewCell {
     @IBOutlet weak var receivedFrom: UILabel!
     @IBOutlet weak var lastReceived: UILabel!
     @IBOutlet weak var bookTitle: UILabel!
+    @IBOutlet weak var unreadMessage: UILabel!
     
     var conversationId : Int?   // id of the conversation
-    var unseenMessages : Int?   // # of messages that are unseen
     
     override func awakeFromNib() {
         super.awakeFromNib()
+        self.unreadMessage.isHidden = true
         // Initialization code
     }
 

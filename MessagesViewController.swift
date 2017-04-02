@@ -38,6 +38,12 @@ class MessagesViewController: UIViewController, UITableViewDataSource, UITableVi
     internal func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "conversationCell") as! ConversationTableViewCell
         let convo : [String : AnyObject] = convoContent[indexPath.row] as! [String : AnyObject]
+        if let messageCount = convo["unreadMessageCount"] as? Int{
+            if(messageCount > 0){
+                cell.unreadMessage.text = String(messageCount)
+                cell.unreadMessage.isHidden = false
+            }
+        }
         let book : [String : AnyObject]  = convo["book"] as! [String : AnyObject]
         if(isRecipientView){
             self.setRecipientData(cell: cell, convo : convo)
