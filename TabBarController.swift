@@ -7,15 +7,28 @@
 //
 
 import UIKit
+import CoreLocation
 
-class TabBarController: UITabBarController, UITabBarControllerDelegate {
+class TabBarController: UITabBarController, UITabBarControllerDelegate, CLLocationManagerDelegate {
     
     let userDefaults = Foundation.UserDefaults.standard
+    let locationManager = CLLocationManager()
+    var userLocation : CLLocation?
 
     override func viewDidLoad() {
         super.viewDidLoad()
         self.delegate = self
         // Do any additional setup after loading the view.
+    }
+    
+    override func viewDidAppear(_ animated: Bool){
+        locationManager.delegate = self
+        
+        isAuthorizedtoGetUserLocation()
+        if CLLocationManager.locationServicesEnabled() {
+            locationManager.desiredAccuracy = kCLLocationAccuracyBest
+            locationManager.startUpdatingLocation()
+        }
     }
 
     override func didReceiveMemoryWarning() {
@@ -44,9 +57,14 @@ class TabBarController: UITabBarController, UITabBarControllerDelegate {
             let messageView : MessagesViewController = messageNavController.viewControllers[0] as! MessagesViewController
             messageView.loadRecipientConversations()
         }
+        
+        if (viewController.restorationIdentifier == "searchNavigationController"){
+            let searchNavController = viewController as! UINavigationController
+            let searchView : SearchViewController = searchNavController.viewControllers[0] as! SearchViewController
+            searchView.getMostRecentBooks()
+        }
 
     }
-    
     
     
     func getUserProfile(profileView : ProfileViewController){
@@ -73,6 +91,62 @@ class TabBarController: UITabBarController, UITabBarControllerDelegate {
                 }
             }
         }
+    }
+    
+    //if we have no permission to access user location, then ask user for permission.
+    func isAuthorizedtoGetUserLocation() {
+        if CLLocationManager.authorizationStatus() != .authorizedWhenInUse  {
+            locationManager.requestWhenInUseAuthorization()
+        }
+    }
+    
+    //this method will be called each time when a user change his location access preference.
+    func locationManager(_ manager: CLLocationManager, didChangeAuthorization status: CLAuthorizationStatus) {
+        if status == .authorizedWhenInUse {
+            print("User allowed us to access location")
+        }
+    }
+    
+    //this method is called by the framework on         locationManager.requestLocation();
+    func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+        
+        if(locations.count > 0){
+            userLocation = locations[0]
+        }
+        if(userLocation != nil){
+            locationManager.stopUpdatingLocation()
+            CLGeocoder().reverseGeocodeLocation(userLocation!) { (placemark, error) in
+                if (error != nil) {
+                    print(error.debugDescription)
+                }
+                
+                if (placemark?.count)! > 0 {
+                    let placemarkInfo = placemark?[0]
+                    self.buildAndSaveLocationObject(placemark: placemarkInfo!)
+                }
+            }
+        }
+        
+    }
+    
+    func buildAndSaveLocationObject(placemark : CLPlacemark){
+        var location : [String : AnyObject] = [:]
+        location["country"] = placemark.country as AnyObject?
+        location["city"] = placemark.addressDictionary?["City"] as AnyObject?
+        location["address"] = placemark.addressDictionary?["Street"] as AnyObject?
+        location["province"] = placemark.addressDictionary?["State"] as AnyObject?
+        location["latitude"] = placemark.location?.coordinate.latitude as AnyObject?
+        location["longitude"] = placemark.location?.coordinate.longitude as AnyObject?
+        
+        UserService().updateUserLocation(location: location) { (dictionary) in
+            OperationQueue.main.addOperation {
+                print(dictionary)
+            }
+        }
+    }
+    
+    func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
+        print("Did location updates is called but failed getting location \(error)")
     }
     
     

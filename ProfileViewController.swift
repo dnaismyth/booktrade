@@ -143,8 +143,6 @@ class ProfileViewController: UIViewController, UICollectionViewDelegate, UIColle
             OperationQueue.main.addOperation{
                 self.bookContent = dictionary.value(forKey: "content") as! NSArray
                 self.bookCollectionView.reloadData()
-                print("Book content count is...\(self.bookContent.count)")
-                print(self.bookContent)
             }
         }
     }

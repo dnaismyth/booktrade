@@ -43,4 +43,11 @@ class BookService {
         }
     }
     
+    public func getMostRecentBooks(token : String, page : String, size : String, completed : @escaping FinishedFetchingData){
+        let url : String = Constants.API.getRecentBooks.appending("?page=").appending(page).appending("&size=").appending(size)
+        GetRequest().HTTPGet(getUrl: url, token: token) { (dictionary) in
+            completed(dictionary)
+        }
+    }
+    
 }
