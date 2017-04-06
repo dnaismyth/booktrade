@@ -12,6 +12,8 @@ class BookPopupViewController: UIViewController, UITextViewDelegate, UIPopoverPr
     
     // MARK: - Properties
     let userDefaults = Foundation.UserDefaults.standard
+    
+    var segueFromController : String?
 
     // Passed through from previous view controller
     var authorToPass : String?
@@ -102,7 +104,15 @@ class BookPopupViewController: UIViewController, UITextViewDelegate, UIPopoverPr
     // MARK: - Navigation
     
     @IBAction func exitBookPopup(_ sender: UIButton) {
-        
+        if segueFromController! == "SearchViewController"{
+            
+            self.performSegue(withIdentifier: "unwindToSearch", sender: nil)
+            
+        }
+        else if segueFromController! == "ProfileViewController"{
+            self.performSegue(withIdentifier: "unwindToProfile", sender: nil)
+            
+        }
     }
     
     @IBAction func getMoreBookInfo(_ sender: UIButton) {

@@ -10,9 +10,8 @@ import UIKit
 
 class BookSearchCollectionViewCell: UICollectionViewCell {
     
+    @IBOutlet var titleLabel: UILabel!
     @IBOutlet var coverImage: UIImageView!
-    // Book title
-    var title : String?
     
     // Book Author
     var author : String?

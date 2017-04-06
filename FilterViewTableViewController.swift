@@ -38,7 +38,8 @@ class FilterViewTableViewController: UITableViewController {
     }
     
     @objc private func resetFilter(){
-        print("Resetting filter.")
+        filterPrefs = Constants.FILTER.defaultFilter
+        userDefaults.set( filterPrefs, forKey: "filter_pref")   // set preferences back to default
     }
 
     @IBAction func textbookButton(_ sender: UIButton) {
@@ -104,6 +105,7 @@ class FilterViewTableViewController: UITableViewController {
         if(!NSDictionary(dictionary: Constants.FILTER.defaultFilter).isEqual(to: filterPrefs)){
             filterPrefs[Constants.FILTER.useFilter] = true as AnyObject?    // if so, we will use this filter to perform future book queries
             userDefaults.set( filterPrefs, forKey: "filter_pref")   // update the user preferences
+            NotificationCenter.default.post(name: NSNotification.Name(rawValue: Constants.NOTIFICATION.refreshFilter), object: nil) // notify to update filter prefs.
         }
     }
     /*

@@ -65,6 +65,8 @@ class ProfileViewController: UIViewController, UICollectionViewDelegate, UIColle
         }
         
         if segue.identifier == "bookInfoSegue" {
+            let destination = segue.destination as! BookPopupViewController
+            destination.segueFromController = "ProfileViewController"
             let bookInfoView = segue.destination as! BookPopupViewController
             if(cellToPass != nil){
                 self.setPopupInfo(bookPopupInfo: bookInfoView, cell: cellToPass!)
@@ -117,7 +119,7 @@ class ProfileViewController: UIViewController, UICollectionViewDelegate, UIColle
         return cell
     }
     
-    func collectionView(_ collectionView: UICollectionView, didDeselectItemAt indexPath: IndexPath) {
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         print("Selected!")
         cellToPass = collectionView.cellForItem(at: indexPath) as? BookCollectionViewCell
         performSegue(withIdentifier: "bookInfoSegue", sender: self)

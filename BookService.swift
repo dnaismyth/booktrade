@@ -59,4 +59,13 @@ class BookService {
         }
     }
     
+    // Filtered book search
+    public func filterSearchBooks(token : String, filter : String, page : String, size : String, completed : @escaping FinishedFetchingData){
+        let url : String = Constants.API.filterSearch.appending("?page=").appending(page).appending("&size=").appending(size).appending(filter)
+        print(url)
+        GetRequest().HTTPGet(getUrl: url, token: token) { (dictionary) in
+            completed(dictionary)
+        }
+    }
+    
 }
