@@ -9,79 +9,103 @@
 import UIKit
 
 class FilterViewTableViewController: UITableViewController {
+    
+    let userDefaults = Foundation.UserDefaults.standard
 
+    var priceSelected : Bool = false
+    var filterPrefs : [String : AnyObject] = [:]
+    @IBOutlet var textbookFilter: UIButton!
+    @IBOutlet var freeFilter: UIButton!
+    @IBOutlet var priceFilter: UIButton!
+    @IBOutlet var recentlyAddedFilter: UIButton!
     @IBOutlet var filterTableView: UITableView!
+    
     override func viewDidLoad() {
         super.viewDidLoad()
+        filterPrefs = userDefaults.dictionary(forKey: "filter_pref") as! [String : AnyObject]
+        print(filterPrefs)
+        filterTableView.delegate = self
+        filterTableView.dataSource = self
+        self.navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Reset", style: .plain, target: self, action: #selector(self.resetFilter))
         // Uncomment the following line to preserve selection between presentations
         // self.clearsSelectionOnViewWillAppear = false
 
-        // Uncomment the following line to display an Edit button in the navigation bar for this view controller.
-        // self.navigationItem.rightBarButtonItem = self.editButtonItem()
     }
 
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
     }
-
-    // MARK: - Table view data source
-
-    /*override func numberOfSections(in tableView: UITableView) -> Int {
-        // #warning Incomplete implementation, return the number of sections
-        return 4
-    }*/
-
-    /*override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        // #warning Incomplete implementation, return the number of rows
-        return 0
-    }*/
-
-    /*
-    override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "reuseIdentifier", for: indexPath)
-
-        // Configure the cell...
-
-        return cell
+    
+    @objc private func resetFilter(){
+        print("Resetting filter.")
     }
-    */
 
-    /*
-    // Override to support conditional editing of the table view.
-    override func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool {
-        // Return false if you do not want the specified item to be editable.
-        return true
+    @IBAction func textbookButton(_ sender: UIButton) {
+        if(!sender.isSelected){
+            sender.setBackgroundColor(color: UIColor.gray, forState: UIControlState.selected)
+            sender.isSelected = true
+            filterPrefs[Constants.FILTER.textbook] = true as AnyObject?
+        } else {
+            sender.setBackgroundColor(color: UIColor.white, forState: UIControlState.normal)
+            sender.isSelected = false
+            filterPrefs[Constants.FILTER.textbook] = false as AnyObject?
+        }
     }
-    */
-
-    /*
-    // Override to support editing the table view.
-    override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCellEditingStyle, forRowAt indexPath: IndexPath) {
-        if editingStyle == .delete {
-            // Delete the row from the data source
-            tableView.deleteRows(at: [indexPath], with: .fade)
-        } else if editingStyle == .insert {
-            // Create a new instance of the appropriate class, insert it into the array, and add a new row to the table view
-        }    
+    
+    @IBAction func freeButton(_ sender: UIButton) {
+        if(!sender.isSelected){
+            sender.setBackgroundColor(color: UIColor.gray, forState: UIControlState.selected)
+            sender.isSelected = true
+            filterPrefs[Constants.FILTER.free] = true as AnyObject?
+        } else {
+            sender.setBackgroundColor(color: UIColor.white, forState: UIControlState.normal)
+            sender.isSelected = false
+            filterPrefs[Constants.FILTER.free] = false as AnyObject?
+        }
     }
-    */
-
-    /*
-    // Override to support rearranging the table view.
-    override func tableView(_ tableView: UITableView, moveRowAt fromIndexPath: IndexPath, to: IndexPath) {
-
+    
+    @IBAction func distanceSlider(_ sender: UISlider) {
     }
-    */
-
-    /*
-    // Override to support conditional rearranging of the table view.
-    override func tableView(_ tableView: UITableView, canMoveRowAt indexPath: IndexPath) -> Bool {
-        // Return false if you do not want the item to be re-orderable.
-        return true
+    
+    @IBAction func priceButton(_ sender: UIButton) {
+        if(!sender.isSelected){
+            sender.setBackgroundColor(color: UIColor.gray, forState: UIControlState.selected)
+            sender.isSelected = true
+            filterPrefs[Constants.FILTER.price] = true as AnyObject?
+            filterPrefs[Constants.FILTER.recent] = false as AnyObject?
+            recentlyAddedFilter.isSelected = false
+            recentlyAddedFilter.setBackgroundColor(color: UIColor.white, forState: UIControlState.normal)
+        } else {
+            sender.setBackgroundColor(color: UIColor.white, forState: UIControlState.normal)
+            sender.isSelected = false
+            filterPrefs[Constants.FILTER.price] = false as AnyObject?
+        }
+        
     }
-    */
+    
+    @IBAction func recentAddedButton(_ sender: UIButton) {
+        if(!sender.isSelected){
+            sender.setBackgroundColor(color: UIColor.gray, forState: UIControlState.selected)
+            sender.isSelected = true
+            filterPrefs[Constants.FILTER.recent] = true as AnyObject?
+            filterPrefs[Constants.FILTER.price] = false as AnyObject?
+            priceFilter.isSelected = false
+            priceFilter.setBackgroundColor(color: UIColor.white, forState: UIControlState.normal)
+        } else {
+            sender.setBackgroundColor(color: UIColor.white, forState: UIControlState.normal)
+            sender.isSelected = false
+            filterPrefs[Constants.FILTER.recent] = false as AnyObject?
+        }
+    }
 
+    @IBAction func saveFilter(_ sender: UIButton) {
+        // Check if there are any changes from the default filter
+        if(!NSDictionary(dictionary: Constants.FILTER.defaultFilter).isEqual(to: filterPrefs)){
+            filterPrefs[Constants.FILTER.useFilter] = true as AnyObject?    // if so, we will use this filter to perform future book queries
+            userDefaults.set( filterPrefs, forKey: "filter_pref")   // update the user preferences
+        }
+    }
     /*
     // MARK: - Navigation
 

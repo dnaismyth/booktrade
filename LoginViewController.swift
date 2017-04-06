@@ -61,11 +61,15 @@ class LoginViewController: UIViewController {
         PostRequest().urlencodedPost(postUrl: Constants.API.login, form: form, completionHandler: { (dictionary) -> Void in
             OperationQueue.main.addOperation{
                 if(dictionary["access_token"] != nil){
+                    self.storeDefaultSearchFilter() // store the default search filter into user preferences
                     self.storeLoginResponse(response: dictionary, completed: { 
                         UserService().storeUserPlatformToken()  // store the user's device token once they have logged in
                     })
                     let storyboard = UIStoryboard(name: "Main", bundle: nil)
-                    let viewController = storyboard.instantiateViewController(withIdentifier :"tabBarController")
+                    let viewController = storyboard.instantiateViewController(withIdentifier :"tabBarController") as! TabBarController
+                    let searchNavController = viewController.viewControllers?[0] as! UINavigationController
+                    let searchController = searchNavController.viewControllers[0] as! SearchViewController
+                    searchController.getMostRecentBooks()   // load the most recent books before entering view
                     self.present(viewController, animated: true)
                 } else {
                     self.showInvalidAlert(alertTitle: "Error Signing In", alertMessage: "The e-mail or password is incorrect.")
@@ -82,6 +86,11 @@ class LoginViewController: UIViewController {
         userDefaults.set( refresh_token, forKey: "refresh_token")
         userDefaults.set( expires_in, forKey:"expires_in")
         completed()
+    }
+    
+    private func storeDefaultSearchFilter(){
+        let filter_pref : [String : AnyObject] = Constants.FILTER.defaultFilter
+        userDefaults.set( filter_pref, forKey: "filter_pref")
     }
     
 

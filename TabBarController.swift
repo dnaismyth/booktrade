@@ -18,6 +18,7 @@ class TabBarController: UITabBarController, UITabBarControllerDelegate, CLLocati
     override func viewDidLoad() {
         super.viewDidLoad()
         self.delegate = self
+        self.selectedViewController = self.viewControllers?[0]
         // Do any additional setup after loading the view.
     }
     

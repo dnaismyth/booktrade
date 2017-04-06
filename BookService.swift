@@ -43,8 +43,17 @@ class BookService {
         }
     }
     
+    // Get most recent books (these will display upon first entering the search page)
     public func getMostRecentBooks(token : String, page : String, size : String, completed : @escaping FinishedFetchingData){
         let url : String = Constants.API.getRecentBooks.appending("?page=").appending(page).appending("&size=").appending(size)
+        GetRequest().HTTPGet(getUrl: url, token: token) { (dictionary) in
+            completed(dictionary)
+        }
+    }
+    
+    // Search books
+    public func searchBooks(token : String, value : String, page : String, size : String, completed : @escaping FinishedFetchingData){
+        let url : String = Constants.API.searchBooks.appending("?page=").appending(page).appending("&size=").appending(size).appending("&value=").appending(value)
         GetRequest().HTTPGet(getUrl: url, token: token) { (dictionary) in
             completed(dictionary)
         }

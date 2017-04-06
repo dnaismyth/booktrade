@@ -8,17 +8,23 @@
 
 import UIKit
 
-class SearchViewController: UIViewController, UICollectionViewDelegate, UICollectionViewDataSource {
+class SearchViewController: UIViewController, UICollectionViewDelegate, UICollectionViewDataSource, UISearchBarDelegate {
     
     @IBOutlet var searchCollectionView: UICollectionView!
+    @IBOutlet var searchBar: UISearchBar!
     
     let userDefaults = Foundation.UserDefaults.standard
+    var filterPrefs : [String : AnyObject] = [:]
     var bookContent : NSArray = []
+    var searchActivated : Bool = false
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        searchBar.delegate = self
         self.searchCollectionView.delegate = self
         self.searchCollectionView.dataSource = self
+        self.hideKeyboardWhenTappedAround()
+        filterPrefs = userDefaults.dictionary(forKey: "filter_pref") as! [String : AnyObject]
         // Do any additional setup after loading the view.
     }
     
@@ -27,11 +33,35 @@ class SearchViewController: UIViewController, UICollectionViewDelegate, UICollec
         // Dispose of any resources that can be recreated.
     }
     
+    func searchBarTextDidBeginEditing(_ searchBar: UISearchBar) {
+    }
+    
+    func searchBarTextDidEndEditing(_ searchBar: UISearchBar) {
+    }
+    
+    func searchBarCancelButtonClicked(_ searchBar: UISearchBar) {
+        print("Cancelled")
+        if(searchActivated){
+            self.getMostRecentBooks()   // only reload original result set if search had previously been activated
+            searchActivated = false
+        }
+    }
+    
+    func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
+        let searchValue : String = searchBar.text!
+        let useFilter : Bool = self.shouldUseFilterPreferences()
+        if(!useFilter){
+            self.searchBooksWithoutFilter(searchValue: searchValue)
+        } else {
+            
+        }
+        searchActivated = true;
+    }
+    
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         return bookContent.count
     }
-    
-    
+
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = searchCollectionView.dequeueReusableCell(withReuseIdentifier: "searchBookCell", for: indexPath) as! BookSearchCollectionViewCell
         let book = self.bookContent[indexPath.item] as! [String : AnyObject]
@@ -69,6 +99,17 @@ class SearchViewController: UIViewController, UICollectionViewDelegate, UICollec
         }
     }
     
+    func searchBooksWithoutFilter(searchValue : String){
+        let token : String = userDefaults.string(forKey: "access_token")!
+        BookService().searchBooks(token: token, value: searchValue, page: String(0), size: String(5)) { (dictionary) in
+            OperationQueue.main.addOperation {
+                self.bookContent = dictionary.value(forKey: "content") as! NSArray
+                self.searchCollectionView.reloadData()
+            }
+        }
+    }
+    
+    // Initially display most recent, nearby books
     func getMostRecentBooks(){
         let token : String = userDefaults.string(forKey: "access_token")!
         BookService().getMostRecentBooks(token: token, page: String(0), size: String(10)) { (dictionary) in
@@ -79,6 +120,10 @@ class SearchViewController: UIViewController, UICollectionViewDelegate, UICollec
         }
     }
     
+    func shouldUseFilterPreferences() -> Bool {
+        let useFilterPrefs : Bool = filterPrefs[Constants.FILTER.useFilter] as! Bool
+        return useFilterPrefs
+    }
 
     /*
     // MARK: - Navigation
