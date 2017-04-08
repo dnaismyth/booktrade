@@ -37,7 +37,6 @@ class SearchViewController: UIViewController, UICollectionViewDelegate, UICollec
     
     func updateFilterPreferences(notification: NSNotification){
         filterPrefs = userDefaults.dictionary(forKey: "filter_pref") as! [String : AnyObject]
-        print(filterPrefs)
     }
     
     func searchBarTextDidBeginEditing(_ searchBar: UISearchBar) {

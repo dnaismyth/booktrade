@@ -67,9 +67,12 @@ class TabBarController: UITabBarController, UITabBarControllerDelegate, CLLocati
 
     }
     
-    
+    // Get the current user's profile
     func getUserProfile(profileView : ProfileViewController){
         UserService().getUserProfile(userId: nil) { (dictionary) in
+            self.userDefaults.set(dictionary["name"], forKey: Constants.USER_DEFAULTS.nameKey)
+            self.userDefaults.set(dictionary["email"], forKey: Constants.USER_DEFAULTS.emailKey)
+            
             let userId : Int = dictionary["id"] as! Int
             profileView.loadUserAvailableBooks(userId: String(userId))
             profileView.userId = String(userId)
@@ -80,6 +83,11 @@ class TabBarController: UITabBarController, UITabBarControllerDelegate, CLLocati
             
             if let avatarUrl : String = dictionary["avatar"] as? String{
                 self.setAvatarImage(imageUrl: avatarUrl, imageView: profileView.avatarImage)
+            }
+            
+            if let bio : String = dictionary["bio"] as? String {
+                self.userDefaults.set(bio, forKey: Constants.USER_DEFAULTS.bioKey)
+                profileView.bioLabel.text = bio
             }
         }
     }
@@ -140,9 +148,8 @@ class TabBarController: UITabBarController, UITabBarControllerDelegate, CLLocati
         location["longitude"] = placemark.location?.coordinate.longitude as AnyObject?
         
         UserService().updateUserLocation(location: location) { (dictionary) in
-            OperationQueue.main.addOperation {
-                print(dictionary)
-            }
+            print("Finished updating location")
+            print(dictionary)
         }
     }
     

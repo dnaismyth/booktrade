@@ -56,16 +56,50 @@ class UserService {
         ]
         PutRequest().jsonPut(postUrl: Constants.API.updateUserAvatar, token: access_token!, body: data) { (dictionary) in
             OperationQueue.main.addOperation{
+                self.userDefaults.set(dictionary["avatar"], forKey: Constants.USER_DEFAULTS.userAvatar)
                 print(dictionary)
             }
         }
+    }
+    
+    // Update user's name
+    func updateUserName(name : String, completed : @escaping FinishedFetchingData){
+        let access_token = userDefaults.string(forKey: "access_token")
+        let data : [String : AnyObject] = [
+            "value" : name as AnyObject
+        ]
+        
+        PutRequest().jsonPut(postUrl: Constants.API.updateUserName, token: access_token!, body: data) { (dictionary) in
+            OperationQueue.main.addOperation {
+                self.userDefaults.set(dictionary["name"], forKey: Constants.USER_DEFAULTS.nameKey)
+                completed(dictionary)
+            }
+        }
+    }
+    
+    // Update user's bio
+    func updateUserBio(bio : String, completed : @escaping FinishedFetchingData){
+        let access_token = userDefaults.string(forKey: "access_token")
+        let data : [String : AnyObject] = [
+            "value" : bio as AnyObject
+        ]
+        PutRequest().jsonPut(postUrl: Constants.API.updateUserBio, token: access_token!, body: data) { (dictionary) in
+            OperationQueue.main.addOperation {
+                self.userDefaults.set(dictionary["bio"], forKey: Constants.USER_DEFAULTS.bioKey)
+                completed(dictionary)
+            }
+        }
+        
     }
     
     // Update the user's location
     func updateUserLocation(location : [String : AnyObject], completed : @escaping FinishedFetchingData){
         let access_token = userDefaults.string(forKey: "access_token")!
         PutRequest().jsonPut(postUrl: Constants.API.updateUserLocation, token: access_token, body: location) { (dictionary) in
-            completed(dictionary)
+            OperationQueue.main.addOperation {
+                self.userDefaults.set(dictionary["location"], forKey: Constants.USER_DEFAULTS.locationKey)
+                completed(dictionary)
+            }
         }
     }
     
@@ -79,4 +113,5 @@ class UserService {
             }
         }
     }
+    
 }

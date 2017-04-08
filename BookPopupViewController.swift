@@ -43,7 +43,7 @@ class BookPopupViewController: UIViewController, UITextViewDelegate, UIPopoverPr
         commentTextView.delegate = self
         commentTextView.text = self.commentTextPlaceholder
         commentTextView.textColor = UIColor.lightGray
-        let currUserId : String = userDefaults.string(forKey: "user_id")!
+        let currUserId : String = userDefaults.string(forKey: Constants.USER_DEFAULTS.userIdKey)!
         if(ownerIdToPass != Int(currUserId)){
             editButton.isHidden = true      // hide the edit button if book does not belong to current user
         }

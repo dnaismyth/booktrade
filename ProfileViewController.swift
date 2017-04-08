@@ -26,8 +26,11 @@ class ProfileViewController: UIViewController, UICollectionViewDelegate, UIColle
 
     override func viewDidLoad() {
         super.viewDidLoad()
+           NotificationCenter.default.addObserver(self, selector: #selector(self.profileUpdated(notification:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.profileUpdated), object: nil)
         self.bookCollectionView.delegate = self
         self.bookCollectionView.dataSource = self
+        //TODO: Hide/show settings depending on if the current user.id = user.profile.id
+        self.navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Settings", style: .plain, target: self, action: #selector(self.viewUserSettings))
         let tapGestureRecognizer = UITapGestureRecognizer(target: self, action: #selector(avatarTapped(tapGestureRecognizer:)))
         avatarImage.isUserInteractionEnabled = true
         avatarImage.addGestureRecognizer(tapGestureRecognizer)
@@ -47,6 +50,10 @@ class ProfileViewController: UIViewController, UICollectionViewDelegate, UIColle
         //let avatar = tapGestureRecognizer.view as! UIImageView
         self.performSegue(withIdentifier: "changeAvatarSegue", sender: self)
         // Your action
+    }
+    
+    func viewUserSettings(){
+        performSegue(withIdentifier: "settingsViewSegue", sender: self)
     }
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
@@ -179,6 +186,35 @@ class ProfileViewController: UIViewController, UICollectionViewDelegate, UIColle
     @IBAction func unwindToProfile(segue: UIStoryboardSegue) {
         if let changeAvatarView = segue.source as? ChangeAvatarViewController {
             self.avatarImage.image = changeAvatarView.imageView.image
+        }
+    }
+    
+    func profileUpdated(notification : NSNotification){
+        self.userNameLabel.text = userDefaults.string(forKey: Constants.USER_DEFAULTS.nameKey)
+        if let bio : String = userDefaults.string(forKey: Constants.USER_DEFAULTS.bioKey){
+            self.bioLabel.text = bio
+        } else {
+            self.bioLabel.isHidden = true
+        }
+        
+        if let avatar : String = userDefaults.string(forKey: Constants.USER_DEFAULTS.userAvatar){
+            self.setAvatarImage(imageUrl: avatar, imageView: self.avatarImage)
+        }
+        
+        if let location : [String : AnyObject] = userDefaults.dictionary(forKey: Constants.USER_DEFAULTS.locationKey) as [String : AnyObject]?{
+            let city : String = location ["city"] as! String
+            self.locationLabel.text = city
+        }
+    }
+    
+    
+    func setAvatarImage(imageUrl: String, imageView : UIImageView){
+        if let url = NSURL(string: imageUrl) {
+            if let data = NSData(contentsOf: url as URL){
+                if let imageUrl = UIImage(data: data as Data) {
+                    imageView.image = imageUrl
+                }
+            }
         }
     }
 
