@@ -16,6 +16,8 @@ class ChangeAvatarViewController: UIViewController, UIImagePickerControllerDeleg
     var selectedImageUrl: NSURL!
     var imageSelected = false
     let userDefaults = Foundation.UserDefaults.standard
+    var segueFromController : String?   // previous view controller
+
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -83,8 +85,13 @@ class ChangeAvatarViewController: UIViewController, UIImagePickerControllerDeleg
             self.s3UploadFromLibrary(image: image, selectedImageUrl : selectedImageUrl)
         }
 
+        if(segueFromController == "ProfileController"){
+            performSegue(withIdentifier: "unwindToProfile", sender: self)
+        }
         
-        performSegue(withIdentifier: "unwindToProfile", sender: self)
+        if(segueFromController == "SettingsController"){
+            performSegue(withIdentifier: "unwindToProfileSettings", sender: self)
+        }
 
     }
     
@@ -144,6 +151,23 @@ class ChangeAvatarViewController: UIViewController, UIImagePickerControllerDeleg
                 let profileView = segue.destination as! ProfileViewController
                 profileView.avatarImage.image = self.imageView.image
             }
+        }
+        
+        if segue.identifier == "unwindToProfileSettings" {
+            if(imageSelected){
+                let profileSettingsView = segue.destination as! UpdateProfileTableViewController
+                profileSettingsView.avatarImage.image = self.imageView.image
+            }
+        }
+    }
+    
+    @IBAction func cancelButton(_ sender: UIButton) {
+        if(segueFromController == "ProfileController"){
+            performSegue(withIdentifier: "unwindToProfile", sender: self)
+        }
+        
+        if(segueFromController == "SettingsController"){
+            performSegue(withIdentifier: "unwindToProfileSettings", sender: self)
         }
     }
    

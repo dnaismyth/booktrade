@@ -21,6 +21,8 @@ class UpdateUserPropertyViewController: UIViewController, CLLocationManagerDeleg
     var mapView: MKMapView!
     var placeMarkInfo : CLPlacemark?
     var annotations : [MKPointAnnotation] = []
+    let span:MKCoordinateSpan = MKCoordinateSpanMake(0.1, 0.1)
+
     
     @IBOutlet var nameTextField: UITextField!
     @IBOutlet var bioTextView: UITextView!
@@ -78,6 +80,8 @@ class UpdateUserPropertyViewController: UIViewController, CLLocationManagerDeleg
                     self.annotations.removeAll()
                 }
                 self.mapView.addAnnotation(annotation)
+                let region:MKCoordinateRegion = MKCoordinateRegionMake(CLLocationCoordinate2D(latitude: (annotation.coordinate.latitude), longitude: (annotation.coordinate.longitude)), self.span)
+                self.mapView.setRegion(region, animated: true)
                 self.annotations.append(annotation)
             }
             
@@ -205,11 +209,8 @@ class UpdateUserPropertyViewController: UIViewController, CLLocationManagerDeleg
     
     //this method is called by the framework on         locationManager.requestLocation();
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
-        let span:MKCoordinateSpan = MKCoordinateSpanMake(0.1, 0.1)
         if(locations.count > 0){
             userLocation = locations[0]
-            let region:MKCoordinateRegion = MKCoordinateRegionMake(CLLocationCoordinate2D(latitude: (userLocation?.coordinate.latitude)!, longitude: (userLocation?.coordinate.longitude)!), span)
-            mapView.setRegion(region, animated: true)
         }
         if(userLocation != nil){
             if(annotations.count > 0){
@@ -220,6 +221,8 @@ class UpdateUserPropertyViewController: UIViewController, CLLocationManagerDeleg
             annotation.coordinate = CLLocationCoordinate2D(latitude: (userLocation?.coordinate.latitude)!, longitude: (userLocation?.coordinate.longitude)!)
             self.mapView.addAnnotation(annotation)
             annotations.append(annotation)
+            let region:MKCoordinateRegion = MKCoordinateRegionMake(CLLocationCoordinate2D(latitude: (annotation.coordinate.latitude), longitude: (annotation.coordinate.longitude)), span)
+            mapView.setRegion(region, animated: true)
             locationManager.stopUpdatingLocation()
             CLGeocoder().reverseGeocodeLocation(userLocation!) { (placemark, error) in
                 if (error != nil) {

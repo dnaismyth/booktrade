@@ -9,11 +9,17 @@
 import UIKit
 
 class SettingsTableViewController: UITableViewController {
+    
+    let userDefaults = Foundation.UserDefaults.standard
+    
+    @IBOutlet var pushNotification: UISwitch!
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        pushNotification.isOn = userDefaults.bool(forKey: Constants.USER_DEFAULTS.notificationKey)
         self.tableView.delegate = self
         self.tableView.dataSource = self
+        self.tableView.tableFooterView = UIView()
     }
 
     override func didReceiveMemoryWarning() {
@@ -29,6 +35,28 @@ class SettingsTableViewController: UITableViewController {
             print("I'm selected")
         }
     }
+    
+    // Toggle on and off user's push notification preference
+    @IBAction func pushNotificationToggle(_ sender: UISwitch) {
+        if(sender.isOn){
+            self.updateNotification(notification: true)
+        } else {
+            self.updateNotification(notification: false)
+        }
+    }
+    
+    private func updateNotification(notification : Bool){
+        UserService().updatePushNotificationSettings(pushNotification: notification) { (dictionary) in
+            if(dictionary["pushNotification"] as! Bool == true){
+                self.pushNotification.isOn = true
+            } else {
+                self.pushNotification.isOn = false
+            }
+        }
+    }
+    
+    
+    
 
     /*
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
@@ -37,17 +65,6 @@ class SettingsTableViewController: UITableViewController {
         // Configure the cell...
 
         return cell
-    }
-    */
-    
-    
-    /*
-    // MARK: - Navigation
-
-    // In a storyboard-based application, you will often want to do a little preparation before navigation
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        // Get the new view controller using segue.destinationViewController.
-        // Pass the selected object to the new view controller.
     }
     */
 

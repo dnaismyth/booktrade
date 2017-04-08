@@ -59,7 +59,8 @@ class ProfileViewController: UIViewController, UICollectionViewDelegate, UIColle
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         
         if segue.identifier == "changeAvatarSegue" {
-            let popupMenu = segue.destination
+            let popupMenu = segue.destination as! ChangeAvatarViewController
+            popupMenu.segueFromController = "ProfileController"
             popupMenu.modalPresentationStyle = UIModalPresentationStyle.popover
             let controller = popupMenu.popoverPresentationController
             if controller != nil {

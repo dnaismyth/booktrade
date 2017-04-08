@@ -97,7 +97,9 @@ class UserService {
         let access_token = userDefaults.string(forKey: "access_token")!
         PutRequest().jsonPut(postUrl: Constants.API.updateUserLocation, token: access_token, body: location) { (dictionary) in
             OperationQueue.main.addOperation {
-                self.userDefaults.set(dictionary["location"], forKey: Constants.USER_DEFAULTS.locationKey)
+                if(NSDictionary(dictionary: location).isEqual(dictionary["location"])){
+                    self.userDefaults.set(location, forKey: Constants.USER_DEFAULTS.locationKey)
+                }
                 completed(dictionary)
             }
         }
@@ -109,6 +111,26 @@ class UserService {
         GetRequest().HTTPGet(getUrl: Constants.API.getS3Token, token: access_token!) { (dictionary) in
             OperationQueue.main.addOperation {
                 print(dictionary)
+                completed(dictionary)
+            }
+        }
+    }
+    
+    // Update push notification settings
+    func updatePushNotificationSettings(pushNotification : Bool, completed : @escaping FinishedFetchingData){
+        let access_token = userDefaults.string(forKey: "access_token")!
+        var value : String = "false"
+        if(pushNotification == true){
+            value = "true"
+        }
+        let data : [String : AnyObject] = [
+            "value" : value as AnyObject
+        ]
+        PutRequest().jsonPut(postUrl: Constants.API.updatePushNotification, token: access_token, body: data) { (dictionary) in
+            OperationQueue.main.addOperation {
+                if(dictionary["pushNotification"] as! Bool == pushNotification){
+                    self.userDefaults.set(pushNotification, forKey : Constants.USER_DEFAULTS.notificationKey)
+                }
                 completed(dictionary)
             }
         }

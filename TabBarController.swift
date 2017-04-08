@@ -72,7 +72,7 @@ class TabBarController: UITabBarController, UITabBarControllerDelegate, CLLocati
         UserService().getUserProfile(userId: nil) { (dictionary) in
             self.userDefaults.set(dictionary["name"], forKey: Constants.USER_DEFAULTS.nameKey)
             self.userDefaults.set(dictionary["email"], forKey: Constants.USER_DEFAULTS.emailKey)
-            
+            self.userDefaults.set(dictionary["pushNotification"], forKey: Constants.USER_DEFAULTS.notificationKey)
             let userId : Int = dictionary["id"] as! Int
             profileView.loadUserAvailableBooks(userId: String(userId))
             profileView.userId = String(userId)

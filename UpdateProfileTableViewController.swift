@@ -8,10 +8,11 @@
 
 import UIKit
 
-class UpdateProfileTableViewController: UITableViewController {
+class UpdateProfileTableViewController: UITableViewController, UIPopoverPresentationControllerDelegate {
     
     let userDefaults = Foundation.UserDefaults.standard
-
+    @IBOutlet var avatarImage: UIImageView!
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         self.tableView.delegate = self
@@ -80,7 +81,35 @@ class UpdateProfileTableViewController: UITableViewController {
             propertyVC.currentlyUpdating = "Location"
             propertyVC.navItemHeader = "Update Location"
         }
+        
+        if segue.identifier == "settingsChangeAvatarSegue" {
+            let popupMenu = segue.destination as! ChangeAvatarViewController
+            popupMenu.segueFromController = "SettingsController"
+            popupMenu.modalPresentationStyle = UIModalPresentationStyle.popover
+            let controller = popupMenu.popoverPresentationController
+            if controller != nil {
+                controller?.delegate = self
+                controller?.sourceView = self.view
+                controller?.sourceRect = CGRect(x: self.view.layer.bounds.midX, y: self.view.layer.bounds.maxY, width: 0, height: 0)
+                controller?.backgroundColor = UIColor(red:1.00, green:1.00, blue:1.00, alpha:0.5)
+                //controller?.permittedArrowDirections = UIPopoverArrowDirection.init(rawValue: 0)
+            }
+        }
+    }
+    
+    func adaptivePresentationStyle(for controller: UIPresentationController, traitCollection: UITraitCollection) -> UIModalPresentationStyle
+    {
+        return UIModalPresentationStyle.none
     }
  
+    @IBAction func changeAvatarButton(_ sender: UIButton) {
+        
+    }
+    
+    @IBAction func unwindToSettings(segue: UIStoryboardSegue) {
+        if let changeAvatarView = segue.source as? ChangeAvatarViewController {
+            self.avatarImage.image = changeAvatarView.imageView.image
+        }
+    }
 
 }
