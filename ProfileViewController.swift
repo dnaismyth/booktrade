@@ -23,12 +23,30 @@ class ProfileViewController: UIViewController, UICollectionViewDelegate, UIColle
     var ownersBooks : [String : AnyObject] = [:]
     var bookContent : NSArray = []
     var cellToPass : BookCollectionViewCell?
+    var isCurrentUsersProfile : Bool?
 
     override func viewDidLoad() {
         super.viewDidLoad()
            NotificationCenter.default.addObserver(self, selector: #selector(self.profileUpdated(notification:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.profileUpdated), object: nil)
         self.bookCollectionView.delegate = self
         self.bookCollectionView.dataSource = self
+        if(isCurrentUsersProfile!){
+           self.loadCurrentUsersProfile()   // load the current user's profile information
+        } else if(!(isCurrentUsersProfile)!){
+            print("Not the current user's profile") // otherwise, load another user's information
+        }
+        
+    }
+    
+    override func viewDidAppear(_ animated: Bool) {
+    }
+
+    override func didReceiveMemoryWarning() {
+        super.didReceiveMemoryWarning()
+        // Dispose of any resources that can be recreated.
+    }
+    
+    func loadCurrentUsersProfile(){
         let avatarUrl : String = userDefaults.string(forKey: Constants.USER_DEFAULTS.userAvatar)!
         self.setAvatarImage(imageUrl: avatarUrl, imageView: self.avatarImage)
         locationLabel.text = Utilities.buildLocationLabel(location: userDefaults.dictionary(forKey: Constants.USER_DEFAULTS.locationKey) as! [String : AnyObject])
@@ -39,14 +57,6 @@ class ProfileViewController: UIViewController, UICollectionViewDelegate, UIColle
         let tapGestureRecognizer = UITapGestureRecognizer(target: self, action: #selector(avatarTapped(tapGestureRecognizer:)))
         avatarImage.isUserInteractionEnabled = true
         avatarImage.addGestureRecognizer(tapGestureRecognizer)
-    }
-    
-    override func viewDidAppear(_ animated: Bool) {
-    }
-
-    override func didReceiveMemoryWarning() {
-        super.didReceiveMemoryWarning()
-        // Dispose of any resources that can be recreated.
     }
     
     func avatarTapped(tapGestureRecognizer: UITapGestureRecognizer)

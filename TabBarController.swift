@@ -45,6 +45,7 @@ class TabBarController: UITabBarController, UITabBarControllerDelegate, CLLocati
         if(viewController.restorationIdentifier == "profileNavigationController"){
             let profileNavController = viewController as! UINavigationController
             let profileView : ProfileViewController = profileNavController.viewControllers[0] as! ProfileViewController
+            profileView.isCurrentUsersProfile = true
             self.getUserProfile(profileView: profileView)
         }
         
@@ -71,7 +72,6 @@ class TabBarController: UITabBarController, UITabBarControllerDelegate, CLLocati
             let userId : Int = dictionary["id"] as! Int
             profileView.loadUserAvailableBooks(userId: String(userId))
             profileView.userId = String(userId)
-            
             if let avatarUrl : String = dictionary["avatar"] as? String{
                 self.userDefaults.set(avatarUrl, forKey: Constants.USER_DEFAULTS.userAvatar)
             }
