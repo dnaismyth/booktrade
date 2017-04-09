@@ -38,12 +38,7 @@ class TabBarController: UITabBarController, UITabBarControllerDelegate, CLLocati
     }
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        
-        if segue.destination is ProfileViewController {
-            let view : ProfileViewController = segue.destination as! ProfileViewController
-            view.bioLabel.text = "Testing"
-            view.userNameLabel.text = "Dayna"
-        }
+    
     }
     
     func tabBarController(_ tabBarController: UITabBarController, didSelect viewController: UIViewController) {
@@ -76,18 +71,13 @@ class TabBarController: UITabBarController, UITabBarControllerDelegate, CLLocati
             let userId : Int = dictionary["id"] as! Int
             profileView.loadUserAvailableBooks(userId: String(userId))
             profileView.userId = String(userId)
-            profileView.userNameLabel.text = dictionary["name"] as? String
-            if let location : [String : AnyObject] = dictionary["location"] as? [String : AnyObject]{
-                profileView.locationLabel.text = location["city"] as? String
-            }
             
             if let avatarUrl : String = dictionary["avatar"] as? String{
-                self.setAvatarImage(imageUrl: avatarUrl, imageView: profileView.avatarImage)
+                self.userDefaults.set(avatarUrl, forKey: Constants.USER_DEFAULTS.userAvatar)
             }
             
             if let bio : String = dictionary["bio"] as? String {
                 self.userDefaults.set(bio, forKey: Constants.USER_DEFAULTS.bioKey)
-                profileView.bioLabel.text = bio
             }
         }
     }
@@ -156,16 +146,5 @@ class TabBarController: UITabBarController, UITabBarControllerDelegate, CLLocati
     func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
         print("Did location updates is called but failed getting location \(error)")
     }
-    
-    
-    /*
-    // MARK: - Navigation
-
-    // In a storyboard-based application, you will often want to do a little preparation before navigation
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        // Get the new view controller using segue.destinationViewController.
-        // Pass the selected object to the new view controller.
-    }
-    */
 
 }

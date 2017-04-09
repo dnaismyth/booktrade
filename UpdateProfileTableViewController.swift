@@ -12,11 +12,21 @@ class UpdateProfileTableViewController: UITableViewController, UIPopoverPresenta
     
     let userDefaults = Foundation.UserDefaults.standard
     @IBOutlet var avatarImage: UIImageView!
+    @IBOutlet var emailLabel: UILabel!
+    @IBOutlet var nameLabel: UILabel!
+    @IBOutlet var aboutLabel: UILabel!
+    @IBOutlet var locationLabel: UILabel!
     
     override func viewDidLoad() {
         super.viewDidLoad()
         self.tableView.delegate = self
         self.tableView.dataSource = self
+        self.emailLabel.text = userDefaults.string(forKey: Constants.USER_DEFAULTS.emailKey)
+        let avatarUrl : String = userDefaults.string(forKey: Constants.USER_DEFAULTS.userAvatar)!
+        self.setAvatarImage(imageUrl: avatarUrl, imageView: self.avatarImage)
+        locationLabel.text = Utilities.buildLocationLabel(location: userDefaults.dictionary(forKey: Constants.USER_DEFAULTS.locationKey) as! [String : AnyObject])
+        aboutLabel.text = userDefaults.string(forKey: Constants.USER_DEFAULTS.bioKey)
+        nameLabel.text = userDefaults.string(forKey: Constants.USER_DEFAULTS.nameKey)
         // Uncomment the following line to preserve selection between presentations
         // self.clearsSelectionOnViewWillAppear = false
 
@@ -109,6 +119,16 @@ class UpdateProfileTableViewController: UITableViewController, UIPopoverPresenta
     @IBAction func unwindToSettings(segue: UIStoryboardSegue) {
         if let changeAvatarView = segue.source as? ChangeAvatarViewController {
             self.avatarImage.image = changeAvatarView.imageView.image
+        }
+    }
+    
+    func setAvatarImage(imageUrl: String, imageView : UIImageView){
+        if let url = NSURL(string: imageUrl) {
+            if let data = NSData(contentsOf: url as URL){
+                if let imageUrl = UIImage(data: data as Data) {
+                    imageView.image = imageUrl
+                }
+            }
         }
     }
 

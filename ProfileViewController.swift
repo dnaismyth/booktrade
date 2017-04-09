@@ -29,12 +29,16 @@ class ProfileViewController: UIViewController, UICollectionViewDelegate, UIColle
            NotificationCenter.default.addObserver(self, selector: #selector(self.profileUpdated(notification:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.profileUpdated), object: nil)
         self.bookCollectionView.delegate = self
         self.bookCollectionView.dataSource = self
+        let avatarUrl : String = userDefaults.string(forKey: Constants.USER_DEFAULTS.userAvatar)!
+        self.setAvatarImage(imageUrl: avatarUrl, imageView: self.avatarImage)
+        locationLabel.text = Utilities.buildLocationLabel(location: userDefaults.dictionary(forKey: Constants.USER_DEFAULTS.locationKey) as! [String : AnyObject])
+        bioLabel.text = userDefaults.string(forKey: Constants.USER_DEFAULTS.bioKey)
+        userNameLabel.text = userDefaults.string(forKey: Constants.USER_DEFAULTS.nameKey)
         //TODO: Hide/show settings depending on if the current user.id = user.profile.id
         self.navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Settings", style: .plain, target: self, action: #selector(self.viewUserSettings))
         let tapGestureRecognizer = UITapGestureRecognizer(target: self, action: #selector(avatarTapped(tapGestureRecognizer:)))
         avatarImage.isUserInteractionEnabled = true
         avatarImage.addGestureRecognizer(tapGestureRecognizer)
-        avatarImage.contentMode = UIViewContentMode.scaleAspectFill
     }
     
     override func viewDidAppear(_ animated: Bool) {
