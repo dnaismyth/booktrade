@@ -8,11 +8,22 @@
 
 import UIKit
 
-class BookSearchCollectionViewCell: UICollectionViewCell {
+// Delegate used to select the current user's profile that has been selected from cell
+protocol ProfileSelectDelegate{
+    func ownerAvatarTapped()
+    func ownerNameTapped()
+}
+class BookSearchCollectionViewCell: UICollectionViewCell, UIGestureRecognizerDelegate {
     
     @IBOutlet var titleLabel: UILabel!
     @IBOutlet var coverImage: UIImageView!
+    @IBOutlet var ownerName: UIButton!
+    @IBOutlet var ownerAvatar: UIButton!
+    @IBOutlet var priceLabel: UILabel!
+    @IBOutlet var uploadedTime: UILabel!
     
+    var delegate:ProfileSelectDelegate!
+
     // Book Author
     var author : String?
     
@@ -31,16 +42,29 @@ class BookSearchCollectionViewCell: UICollectionViewCell {
     // Description or information about the sell/trade
     var itemDescription : String?
     
-    // Owner name of the book posting
-    var ownerName : String?
-    
-    // Owner avatar of the book posting
-    var ownerAvatar : String?
-    
     // Id of the book owner
     var ownerId : Int?
     
     // Owner's location
     var location : String?
+    
+    required init(coder aDecoder: NSCoder) {
+        super.init(coder: aDecoder)!
+        self.layer.shadowOpacity = 0.25
+        self.layer.shadowRadius = 0.6
+        self.layer.shadowOffset = CGSize(width: 0, height: 1)
+        self.layer.shadowColor = UIColor.black.cgColor
+        self.layer.masksToBounds = false
+    }
+    
+    @IBAction func ownerAvatarButton(_ sender: UIButton) {
+    }
+    
+    @IBAction func ownerNameButton(_ sender: UIButton) {
+    }
+    
+    override func awakeFromNib() {
+        super.awakeFromNib()
+    }
 
 }

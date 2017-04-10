@@ -8,7 +8,7 @@
 
 import UIKit
 
-class SearchViewController: UIViewController, UICollectionViewDelegate, UICollectionViewDataSource, UISearchBarDelegate {
+class SearchViewController: UIViewController, UICollectionViewDelegate, UICollectionViewDataSource, UISearchBarDelegate, ProfileSelectDelegate, UIGestureRecognizerDelegate {
     
     @IBOutlet var searchCollectionView: UICollectionView!
     @IBOutlet var searchBar: UISearchBar!
@@ -18,12 +18,17 @@ class SearchViewController: UIViewController, UICollectionViewDelegate, UICollec
     var bookContent : NSArray = []
     var searchActivated : Bool = false
     var cellToPass : BookSearchCollectionViewCell?
+    
+    let avatarGestureRecognizer = UITapGestureRecognizer(target: self, action: #selector(avatarTapped(tapGestureRecognizer:)))
+    let ownerNameGestureRecognizer = UITapGestureRecognizer(target : self, action: #selector(ownerNameTapped(tapGestureRecognizer:)))
 
     override func viewDidLoad() {
         super.viewDidLoad()
         searchBar.delegate = self
         self.searchCollectionView.delegate = self
         self.searchCollectionView.dataSource = self
+        avatarGestureRecognizer.delegate = self
+        ownerNameGestureRecognizer.delegate = self
         //self.hideKeyboardWhenTappedAround()
         filterPrefs = userDefaults.dictionary(forKey: "filter_pref") as! [String : AnyObject]
         NotificationCenter.default.addObserver(self, selector: #selector(self.updateFilterPreferences(notification:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.refreshFilter), object: nil)
@@ -33,6 +38,10 @@ class SearchViewController: UIViewController, UICollectionViewDelegate, UICollec
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
+    }
+    
+    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
+        return true
     }
     
     func updateFilterPreferences(notification: NSNotification){
@@ -98,15 +107,17 @@ class SearchViewController: UIViewController, UICollectionViewDelegate, UICollec
         return filterURL
         
     }
-    
+        
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         return bookContent.count
     }
 
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = searchCollectionView.dequeueReusableCell(withReuseIdentifier: "searchBookCell", for: indexPath) as! BookSearchCollectionViewCell
+        cell.delegate = self
         let book = self.bookContent[indexPath.item] as! [String : AnyObject]
         let owner = book["owner"] as! [String : AnyObject]
+        cell.layer.cornerRadius = CGFloat(Constants.DESIGN.cellRadius)
         cell.bookId = book["id"] as? Int
         cell.author = book["author"] as? String
         cell.titleLabel.text = book["title"] as? String
@@ -114,15 +125,35 @@ class SearchViewController: UIViewController, UICollectionViewDelegate, UICollec
         cell.barcode = book["barcode"] as? String
         cell.condition = book["condition"] as? String
         cell.itemDescription = book["description"] as? String
-        cell.ownerName = owner["name"] as? String
-        cell.ownerAvatar = owner["avatar"] as? String
+        cell.ownerName.setTitle(owner["name"] as? String, for: .normal)
         cell.ownerId = owner["id"] as? Int
+        cell.uploadedTime.text = (book["uploadedTime"] as? String)! + " ago. "
+        cell.ownerName.isUserInteractionEnabled = true
+        cell.ownerName.addGestureRecognizer(ownerNameGestureRecognizer)
         if let location : [String : AnyObject] = owner["location"] as? [String : AnyObject]{
             cell.location = location["city"] as? String
         }
         
         if let imageUrl : String = book ["imageUrl"] as? String {
-            self.setBookImage(imageUrl: imageUrl, cell: cell)
+            self.setCellImage(imageUrl: imageUrl, cell: cell, isOwnerAvatar: false)
+        }
+        
+        if let avatarImage : String = owner["avatar"] as? String {
+            self.setCellImage(imageUrl: avatarImage, cell: cell, isOwnerAvatar: true)
+        }
+        
+        cell.ownerAvatar.layer.cornerRadius = (0.5 * cell.ownerAvatar.bounds.size.width)
+        cell.ownerAvatar.clipsToBounds = true
+        cell.addGestureRecognizer(avatarGestureRecognizer)
+        
+        if let bookCategory : String = book["category"] as? String {
+            if(bookCategory == "FREE"){
+                cell.priceLabel.text = "Free"
+                cell.priceLabel.backgroundColor = Constants.COLOR.freeGreen
+                cell.priceLabel.layer.cornerRadius = CGFloat(Constants.DESIGN.cellRadius)
+                cell.priceLabel.textAlignment = NSTextAlignment.center
+                cell.priceLabel.textColor = UIColor.white
+            }
         }
         
         return cell
@@ -134,15 +165,27 @@ class SearchViewController: UIViewController, UICollectionViewDelegate, UICollec
         performSegue(withIdentifier: "searchBookPopupSegue", sender: self)
     }
     
-    func setBookImage(imageUrl: String, cell : BookSearchCollectionViewCell){
+    func setCellImage(imageUrl: String, cell : BookSearchCollectionViewCell, isOwnerAvatar : Bool){
         print(cell)
         if let url = NSURL(string: imageUrl) {
             if let data = NSData(contentsOf: url as URL){
                 if let imageUrl = UIImage(data: data as Data) {
-                    cell.coverImage.image = imageUrl
+                    if(!isOwnerAvatar){
+                        cell.coverImage.image = imageUrl
+                    } else {
+                        cell.ownerAvatar.setImage(imageUrl.withRenderingMode(.alwaysOriginal), for: .normal)
+                    }
                 }
             }
         }
+    }
+    
+    func ownerNameTapped() {
+        print("Hello owner name")
+    }
+    
+    func ownerAvatarTapped() {
+        print("hello owner avatar")
     }
     
     // Search books by title & author
@@ -195,6 +238,13 @@ class SearchViewController: UIViewController, UICollectionViewDelegate, UICollec
                 self.setPopupInfo(bookPopupInfo: bookInfoView, cell: cellToPass!)
             }
         }
+    }
+    func avatarTapped(tapGestureRecognizer: UITapGestureRecognizer){
+        print("Hello?")
+    }
+    
+    func ownerNameTapped(tapGestureRecognizer: UITapGestureRecognizer){
+        print("HI!")
     }
     
     
