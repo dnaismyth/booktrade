@@ -10,8 +10,8 @@ import UIKit
 
 // Delegate used to select the current user's profile that has been selected from cell
 protocol ProfileSelectDelegate{
-    func ownerAvatarTapped()
-    func ownerNameTapped()
+    func ownerAvatarTapped(cell : BookSearchCollectionViewCell)
+    func ownerNameTapped(cell : BookSearchCollectionViewCell)
 }
 class BookSearchCollectionViewCell: UICollectionViewCell, UIGestureRecognizerDelegate {
     
@@ -48,6 +48,9 @@ class BookSearchCollectionViewCell: UICollectionViewCell, UIGestureRecognizerDel
     // Owner's location
     var location : String?
     
+    // Owner's bio
+    var ownersBio : String?
+    
     required init(coder aDecoder: NSCoder) {
         super.init(coder: aDecoder)!
         self.layer.shadowOpacity = 0.25
@@ -57,10 +60,12 @@ class BookSearchCollectionViewCell: UICollectionViewCell, UIGestureRecognizerDel
         self.layer.masksToBounds = false
     }
     
-    @IBAction func ownerAvatarButton(_ sender: UIButton) {
+    @IBAction func ownerAvatarButton(_ sender: AnyObject) {
+        delegate?.ownerAvatarTapped(cell: self)
     }
     
-    @IBAction func ownerNameButton(_ sender: UIButton) {
+    @IBAction func ownerNameButton(_ sender: AnyObject) {
+        delegate?.ownerNameTapped(cell: self)
     }
     
     override func awakeFromNib() {

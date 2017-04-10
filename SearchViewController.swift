@@ -19,6 +19,7 @@ class SearchViewController: UIViewController, UICollectionViewDelegate, UICollec
     var searchActivated : Bool = false
     var cellToPass : BookSearchCollectionViewCell?
     
+    var cellTappedForProfileView : BookSearchCollectionViewCell?
     let avatarGestureRecognizer = UITapGestureRecognizer(target: self, action: #selector(avatarTapped(tapGestureRecognizer:)))
     let ownerNameGestureRecognizer = UITapGestureRecognizer(target : self, action: #selector(ownerNameTapped(tapGestureRecognizer:)))
 
@@ -131,7 +132,7 @@ class SearchViewController: UIViewController, UICollectionViewDelegate, UICollec
         cell.ownerName.isUserInteractionEnabled = true
         cell.ownerName.addGestureRecognizer(ownerNameGestureRecognizer)
         if let location : [String : AnyObject] = owner["location"] as? [String : AnyObject]{
-            cell.location = location["city"] as? String
+            cell.location = Utilities.buildLocationLabel(location: location)
         }
         
         if let imageUrl : String = book ["imageUrl"] as? String {
@@ -140,6 +141,10 @@ class SearchViewController: UIViewController, UICollectionViewDelegate, UICollec
         
         if let avatarImage : String = owner["avatar"] as? String {
             self.setCellImage(imageUrl: avatarImage, cell: cell, isOwnerAvatar: true)
+        }
+        
+        if let bio : String = owner["bio"] as? String {
+            cell.ownersBio = bio
         }
         
         cell.ownerAvatar.layer.cornerRadius = (0.5 * cell.ownerAvatar.bounds.size.width)
@@ -180,12 +185,14 @@ class SearchViewController: UIViewController, UICollectionViewDelegate, UICollec
         }
     }
     
-    func ownerNameTapped() {
-        print("Hello owner name")
+    func ownerAvatarTapped(cell: BookSearchCollectionViewCell) {
+        cellTappedForProfileView = cell
+        performSegue(withIdentifier: "profileSegueFromSearch", sender: self)
     }
     
-    func ownerAvatarTapped() {
-        print("hello owner avatar")
+    func ownerNameTapped(cell: BookSearchCollectionViewCell) {
+        cellTappedForProfileView = cell
+        performSegue(withIdentifier: "profileSegueFromSearch", sender: self)
     }
     
     // Search books by title & author
@@ -238,7 +245,28 @@ class SearchViewController: UIViewController, UICollectionViewDelegate, UICollec
                 self.setPopupInfo(bookPopupInfo: bookInfoView, cell: cellToPass!)
             }
         }
+        
+        if(segue.identifier == "profileSegueFromSearch"){
+            let destination = segue.destination as! ProfileViewController
+            let currentUserId = userDefaults.string(forKey: Constants.USER_DEFAULTS.userIdKey)
+            destination.userId = currentUserId
+            let cellTappedOwnerId : String = String(describing: cellTappedForProfileView!.ownerId!)
+            print("The current owner id is: \(cellTappedOwnerId)")
+            destination.loadUserAvailableBooks(userId: cellTappedOwnerId)
+            if(currentUserId != cellTappedOwnerId){
+                destination.isCurrentUsersProfile = false
+                destination.userName = cellTappedForProfileView?.ownerName.titleLabel?.text
+                destination.userBio = cellTappedForProfileView?.ownersBio
+                destination.userAvatar = cellTappedForProfileView?.ownerAvatar.imageView?.image
+                destination.userLocation = cellTappedForProfileView?.location
+            } else {
+                print("This is the current user's profile")
+                destination.isCurrentUsersProfile = true
+            }
+            
+        }
     }
+    
     func avatarTapped(tapGestureRecognizer: UITapGestureRecognizer){
         print("Hello?")
     }

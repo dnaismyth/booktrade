@@ -14,6 +14,14 @@ class ProfileViewController: UIViewController, UICollectionViewDelegate, UIColle
     
     var userId : String?    // id of the user's profile in view
     
+    /**
+     Properties belonging to user's other than the current user, these will be loaded to display into the view
+    **/
+    var userAvatar : UIImage?
+    var userName : String?
+    var userBio : String?
+    var userLocation : String?
+    
     @IBOutlet weak var bookCollectionView: UICollectionView!
     @IBOutlet weak var avatarImage: UIImageView!
     @IBOutlet weak var userNameLabel: UILabel!
@@ -34,6 +42,7 @@ class ProfileViewController: UIViewController, UICollectionViewDelegate, UIColle
            self.loadCurrentUsersProfile()   // load the current user's profile information
         } else if(!(isCurrentUsersProfile)!){
             print("Not the current user's profile") // otherwise, load another user's information
+            self.loadSelectedUserProfile()
         }
         
     }
@@ -44,6 +53,14 @@ class ProfileViewController: UIViewController, UICollectionViewDelegate, UIColle
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
+    }
+    
+    func loadSelectedUserProfile(){
+        avatarImage.image = self.userAvatar
+        locationLabel.text = self.userLocation
+        bioLabel.text = self.userBio
+        userNameLabel.text = self.userName
+        locationLabel.text = self.userLocation
     }
     
     func loadCurrentUsersProfile(){
@@ -165,8 +182,13 @@ class ProfileViewController: UIViewController, UICollectionViewDelegate, UIColle
         let token : String = userDefaults.string(forKey: "access_token")!
         BookService().findAvailableBooksByUserId(token: token, userId: userId, page: String(0), size: String(5)) { (dictionary) in
             OperationQueue.main.addOperation{
-                self.bookContent = dictionary.value(forKey: "content") as! NSArray
-                self.bookCollectionView.reloadData()
+                if let content : NSArray = dictionary.value(forKey: "content") as? NSArray{
+                    self.bookContent = content
+                    self.bookCollectionView.reloadData()
+                } else {
+                    print("Error getting content")
+                }
+  
             }
         }
     }
