@@ -31,7 +31,7 @@ class ProfileViewController: UIViewController, UICollectionViewDelegate, UIColle
     @IBOutlet weak var bioLabel: UILabel!
     
     var ownersBooks : [String : AnyObject] = [:]
-    var bookContent : NSArray = []
+    var bookContent : NSMutableArray = []
     var cellToPass : BookCollectionViewCell?
     var isCurrentUsersProfile : Bool?
     var longTapGesture : UILongPressGestureRecognizer?
@@ -195,7 +195,7 @@ class ProfileViewController: UIViewController, UICollectionViewDelegate, UIColle
         BookService().findAvailableBooksByUserId(token: token, userId: userId, page: String(0), size: String(5)) { (dictionary) in
             OperationQueue.main.addOperation{
                 if let content : NSArray = dictionary.value(forKey: "content") as? NSArray{
-                    self.bookContent = content
+                    self.bookContent = content.mutableCopy() as! NSMutableArray
                     self.bookCollectionView.reloadData()
                 } else {
                     print("Error getting content")
@@ -211,7 +211,8 @@ class ProfileViewController: UIViewController, UICollectionViewDelegate, UIColle
         let token : String = userDefaults.string(forKey: "access_token")!
         BookService().findUnavailableBooksByUserId(token: token, userId: userId, page: String(0), size: String(5)) { (dictionary) in
             OperationQueue.main.addOperation {
-                self.bookContent = dictionary.value(forKey: "content") as! NSArray
+                let responseContent = dictionary.value(forKey: "content") as! NSArray
+                self.bookContent = responseContent.mutableCopy() as! NSMutableArray
                 self.bookCollectionView.reloadData()
             }
         }
@@ -270,24 +271,28 @@ class ProfileViewController: UIViewController, UICollectionViewDelegate, UIColle
     // Gesture recognizer to show a popup to mark books as available/unavailable
     func longTapGestureRecognizer(tapGestureRecognizer: UITapGestureRecognizer){
         let pointInCollectionView: CGPoint = tapGestureRecognizer.location(in: self.bookCollectionView)
-        let selectedIndexPath: IndexPath = self.bookCollectionView.indexPathForItem(at: pointInCollectionView)!
-        let selectedCell: BookCollectionViewCell = self.bookCollectionView.cellForItem(at: selectedIndexPath as IndexPath) as! BookCollectionViewCell
-        let status : String = selectedCell.status!
-        if(status == "AVAILABLE" && popupShowing == false){
-            print("I am available.")
-            self.showStatusPopup(status: "AVAILABLE", updatedStatus: "NOT_AVAILABLE", bookId: selectedCell.bookId!)
-            // toggle popup mark as unavailable
-        } else if (popupShowing == false){
-            print("I am not available.")
-            // toggle popup mark as available
+        if let selectedIndexPath : IndexPath = self.bookCollectionView.indexPathForItem(at: pointInCollectionView) {
+            let selectedCell: BookCollectionViewCell = self.bookCollectionView.cellForItem(at: selectedIndexPath as IndexPath) as! BookCollectionViewCell
+            let status : String = selectedCell.status!
+            if(status == "AVAILABLE" && popupShowing == false){
+                print("I am available.")
+                self.showStatusPopup(status: "AVAILABLE", updatedStatus: "NOT_AVAILABLE", bookId: selectedCell.bookId!, indexPath : selectedIndexPath)
+                // toggle popup mark as unavailable
+            } else if (popupShowing == false){
+                print("I am not available.")
+                self.showStatusPopup(status: status, updatedStatus: "AVAILABLE", bookId: selectedCell.bookId!, indexPath : selectedIndexPath)
+                // toggle popup mark as available
+            }
         }
+        
     }
     
-    func showStatusPopup(status : String, updatedStatus : String, bookId : Int){
+    func showStatusPopup(status : String, updatedStatus : String, bookId : Int, indexPath : IndexPath){
         self.bookStatusPopup = BookStatusPopupView(frame: CGRect(x: 10, y: 200, width: 300, height: 200))
         self.bookStatusPopup.delegate = self
         self.bookStatusPopup.bookId = bookId
         self.bookStatusPopup.updatedStatus = updatedStatus
+        self.bookStatusPopup.cellIndexPath = indexPath
         self.popupShowing = true
         self.view.addSubview(bookStatusPopup)
     }
@@ -295,6 +300,33 @@ class ProfileViewController: UIViewController, UICollectionViewDelegate, UIColle
     func bookPopupIsDismissed(popup: BookStatusPopupView) {
         self.popupShowing = false
         popup.removeFromSuperview()
+    }
+    
+    func bookPopupDeletePressed(popup: BookStatusPopupView) {
+        let accessToken : String = userDefaults.string(forKey: "access_token")!
+        let bookId : String = String(describing: popup.bookId!)
+        BookService().deleteBook(token: accessToken, bookId: bookId) { (dictionary) in
+            OperationQueue.main.addOperation {
+                print(dictionary)
+                popup.removeFromSuperview()
+                // show alert
+            }
+        }
+    }
+    
+    func bookPopupUpdateStatusPressed(popup: BookStatusPopupView) {
+        let accessToken : String = userDefaults.string(forKey: "access_token")!
+        let data : [String : AnyObject] = ["id" : popup.bookId as AnyObject,
+                                           "status" : popup.updatedStatus as AnyObject]
+        BookService().updateBookStatus(token: accessToken, data: data) { (dictionary) in
+            OperationQueue.main.addOperation {
+                print(dictionary)
+                popup.removeFromSuperview()
+                self.bookContent.removeObject(at: (popup.cellIndexPath?.item)!)
+                self.bookCollectionView.deleteItems(at: [popup.cellIndexPath!])
+                // show alert
+            }
+        }
     }
 
     /*

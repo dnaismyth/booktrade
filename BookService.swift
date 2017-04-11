@@ -76,4 +76,11 @@ class BookService {
         }
     }
     
+    public func deleteBook(token : String, bookId : String, completed : @escaping FinishedFetchingData){
+        let url : String = Constants.API.deleteBook.replacingOccurrences(of: "{bookId}", with: bookId)
+        DeleteRequest().HTTPDelete(getUrl: url, token: token) { (dictionary) in
+            completed(dictionary)
+        }
+    }
+    
 }

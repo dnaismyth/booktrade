@@ -10,12 +10,15 @@ import UIKit
 
 protocol BookStatusPopupDelegate{
     func bookPopupIsDismissed(popup : BookStatusPopupView)
+    func bookPopupDeletePressed(popup : BookStatusPopupView)
+    func bookPopupUpdateStatusPressed(popup : BookStatusPopupView)
 }
 class BookStatusPopupView: UIView {
     
     let userDefaults = Foundation.UserDefaults.standard
     var contentView:UIView!
     var bookId : Int?
+    var cellIndexPath : IndexPath?  // index path in which the cell been selected from to show popup
     var updatedStatus : String?
     var delegate : BookStatusPopupDelegate!
     @IBOutlet var dismissButton: UIButton!
@@ -43,19 +46,12 @@ class BookStatusPopupView: UIView {
         loadViewFromNib()
     }
     
-    @IBAction func deleteAction(_ sender: UIButton) {
-        
+    @IBAction func deleteAction(_ sender: Any) {
+        self.delegate?.bookPopupDeletePressed(popup: self)
     }
     
-    @IBAction func updateStatusAction(_ sender: UIButton) {
-        let accessToken : String = userDefaults.string(forKey: "access_token")!
-        let data : [String : AnyObject] = ["id" : bookId as AnyObject,
-                                           "status" : updatedStatus as AnyObject]
-        BookService().updateBookStatus(token: accessToken, data: data) { (dictionary) in
-            OperationQueue.main.addOperation {
-                print(dictionary)
-            }
-        }
+    @IBAction func updateStatusAction(_ sender: Any) {
+       self.delegate?.bookPopupUpdateStatusPressed(popup: self)
     }
     @IBAction func dismissAction(_ sender: Any) {
         self.delegate?.bookPopupIsDismissed(popup: self)
