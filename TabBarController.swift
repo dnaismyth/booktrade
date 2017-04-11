@@ -26,9 +26,11 @@ class TabBarController: UITabBarController, UITabBarControllerDelegate, CLLocati
         locationManager.delegate = self
         
         isAuthorizedtoGetUserLocation()
-        if CLLocationManager.locationServicesEnabled() {
-            locationManager.desiredAccuracy = kCLLocationAccuracyBest
-            locationManager.startUpdatingLocation()
+        if let locationHasBeenUpdated : Bool = userDefaults.object(forKey: Constants.USER_DEFAULTS.userLocationSaved) as? Bool {
+            if(!locationHasBeenUpdated && CLLocationManager.locationServicesEnabled()){
+                locationManager.desiredAccuracy = kCLLocationAccuracyBest
+                locationManager.startUpdatingLocation()
+            }
         }
     }
 
@@ -140,6 +142,7 @@ class TabBarController: UITabBarController, UITabBarControllerDelegate, CLLocati
         UserService().updateUserLocation(location: location) { (dictionary) in
             print("Finished updating location")
             print(dictionary)
+            self.userDefaults.set(true, forKey: Constants.USER_DEFAULTS.userLocationSaved)
         }
     }
     

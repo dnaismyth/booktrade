@@ -68,4 +68,12 @@ class BookService {
         }
     }
     
+    // Allow owner to update the status of the book
+    public func updateBookStatus(token : String, data : [String : AnyObject], completed : @escaping FinishedFetchingData){
+        let url : String = Constants.API.updateBookStatus
+        PutRequest().jsonPut(postUrl: url, token: token, body: data) { (dictionary) in
+            completed(dictionary)
+        }
+    }
+    
 }

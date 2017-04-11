@@ -12,7 +12,7 @@ class BookPopupViewController: UIViewController, UITextViewDelegate, UIPopoverPr
     
     // MARK: - Properties
     let userDefaults = Foundation.UserDefaults.standard
-    
+    let notAvailable : String = "NOT_AVAILABLE"
     var segueFromController : String?
 
     // Passed through from previous view controller
@@ -181,6 +181,20 @@ class BookPopupViewController: UIViewController, UITextViewDelegate, UIPopoverPr
     func adaptivePresentationStyle(for controller: UIPresentationController, traitCollection: UITraitCollection) -> UIModalPresentationStyle
     {
         return UIModalPresentationStyle.none
+    }
+    
+    func updateBookStatus(){
+        let access_token = userDefaults.string(forKey: "access_token")
+        let data : [String : AnyObject] = [
+            "id" : self.currentBookId! as AnyObject,
+            "status" : self.notAvailable as AnyObject
+        ]
+        
+        BookService().updateBookStatus(token: access_token!, data: data) { (dictionary) in
+            OperationQueue.main.addOperation {
+                print(dictionary)
+            }
+        }
     }
  
 

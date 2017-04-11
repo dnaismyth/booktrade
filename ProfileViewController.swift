@@ -8,11 +8,12 @@
 
 import UIKit
 
-class ProfileViewController: UIViewController, UICollectionViewDelegate, UICollectionViewDataSource, UIPopoverPresentationControllerDelegate {
+class ProfileViewController: UIViewController, UICollectionViewDelegate, UICollectionViewDataSource, UIPopoverPresentationControllerDelegate,  UIGestureRecognizerDelegate, BookStatusPopupDelegate {
     
     let userDefaults = Foundation.UserDefaults.standard
     
     var userId : String?    // id of the user's profile in view
+    var bookStatusPopup : BookStatusPopupView!
     
     /**
      Properties belonging to user's other than the current user, these will be loaded to display into the view
@@ -21,6 +22,7 @@ class ProfileViewController: UIViewController, UICollectionViewDelegate, UIColle
     var userName : String?
     var userBio : String?
     var userLocation : String?
+    var popupShowing : Bool = false
     
     @IBOutlet weak var bookCollectionView: UICollectionView!
     @IBOutlet weak var avatarImage: UIImageView!
@@ -32,7 +34,8 @@ class ProfileViewController: UIViewController, UICollectionViewDelegate, UIColle
     var bookContent : NSArray = []
     var cellToPass : BookCollectionViewCell?
     var isCurrentUsersProfile : Bool?
-
+    var longTapGesture : UILongPressGestureRecognizer?
+    
     override func viewDidLoad() {
         super.viewDidLoad()
            NotificationCenter.default.addObserver(self, selector: #selector(self.profileUpdated(notification:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.profileUpdated), object: nil)
@@ -72,6 +75,9 @@ class ProfileViewController: UIViewController, UICollectionViewDelegate, UIColle
         //TODO: Hide/show settings depending on if the current user.id = user.profile.id
         self.navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Settings", style: .plain, target: self, action: #selector(self.viewUserSettings))
         let tapGestureRecognizer = UITapGestureRecognizer(target: self, action: #selector(avatarTapped(tapGestureRecognizer:)))
+        longTapGesture = UILongPressGestureRecognizer(target: self, action: #selector(self.longTapGestureRecognizer(tapGestureRecognizer:)))
+        self.setupLongGestureRecognizer(gestureRecognizer: longTapGesture!)
+        self.bookCollectionView.addGestureRecognizer(longTapGesture!)
         avatarImage.isUserInteractionEnabled = true
         avatarImage.addGestureRecognizer(tapGestureRecognizer)
     }
@@ -81,6 +87,12 @@ class ProfileViewController: UIViewController, UICollectionViewDelegate, UIColle
         //let avatar = tapGestureRecognizer.view as! UIImageView
         self.performSegue(withIdentifier: "changeAvatarSegue", sender: self)
         // Your action
+    }
+    
+    func setupLongGestureRecognizer(gestureRecognizer : UILongPressGestureRecognizer){
+        gestureRecognizer.minimumPressDuration = 1.0
+        gestureRecognizer.delaysTouchesBegan = true
+        gestureRecognizer.delegate = self
     }
     
     func viewUserSettings(){
@@ -254,7 +266,36 @@ class ProfileViewController: UIViewController, UICollectionViewDelegate, UIColle
             }
         }
     }
-
+    
+    // Gesture recognizer to show a popup to mark books as available/unavailable
+    func longTapGestureRecognizer(tapGestureRecognizer: UITapGestureRecognizer){
+        let pointInCollectionView: CGPoint = tapGestureRecognizer.location(in: self.bookCollectionView)
+        let selectedIndexPath: IndexPath = self.bookCollectionView.indexPathForItem(at: pointInCollectionView)!
+        let selectedCell: BookCollectionViewCell = self.bookCollectionView.cellForItem(at: selectedIndexPath as IndexPath) as! BookCollectionViewCell
+        let status : String = selectedCell.status!
+        if(status == "AVAILABLE" && popupShowing == false){
+            print("I am available.")
+            self.showStatusPopup(status: "AVAILABLE", updatedStatus: "NOT_AVAILABLE", bookId: selectedCell.bookId!)
+            // toggle popup mark as unavailable
+        } else if (popupShowing == false){
+            print("I am not available.")
+            // toggle popup mark as available
+        }
+    }
+    
+    func showStatusPopup(status : String, updatedStatus : String, bookId : Int){
+        self.bookStatusPopup = BookStatusPopupView(frame: CGRect(x: 10, y: 200, width: 300, height: 200))
+        self.bookStatusPopup.delegate = self
+        self.bookStatusPopup.bookId = bookId
+        self.bookStatusPopup.updatedStatus = updatedStatus
+        self.popupShowing = true
+        self.view.addSubview(bookStatusPopup)
+    }
+    
+    func bookPopupIsDismissed(popup: BookStatusPopupView) {
+        self.popupShowing = false
+        popup.removeFromSuperview()
+    }
 
     /*
     // MARK: - Navigation

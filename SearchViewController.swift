@@ -127,6 +127,7 @@ class SearchViewController: UIViewController, UICollectionViewDelegate, UICollec
         cell.condition = book["condition"] as? String
         cell.itemDescription = book["description"] as? String
         cell.ownerName.setTitle(owner["name"] as? String, for: .normal)
+        cell.ownerName.titleLabel?.textAlignment = NSTextAlignment.left
         cell.ownerId = owner["id"] as? Int
         cell.uploadedTime.text = (book["uploadedTime"] as? String)! + " ago. "
         cell.ownerName.isUserInteractionEnabled = true
