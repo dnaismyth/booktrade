@@ -116,6 +116,16 @@ class UserService {
         }
     }
     
+    // Update the current user's password
+    func updateUserPassword(data : [String : AnyObject], completed : @escaping FinishedFetchingData){
+        let access_token = userDefaults.string(forKey: "access_token")!
+        PutRequest().jsonPut(postUrl: Constants.API.changePassword, token: access_token, body: data) { (dictionary) in
+            OperationQueue.main.addOperation {
+                completed(dictionary)
+            }
+        }
+    }
+    
     // Update push notification settings
     func updatePushNotificationSettings(pushNotification : Bool, completed : @escaping FinishedFetchingData){
         let access_token = userDefaults.string(forKey: "access_token")!

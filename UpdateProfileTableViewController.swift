@@ -92,6 +92,12 @@ class UpdateProfileTableViewController: UITableViewController, UIPopoverPresenta
             propertyVC.navItemHeader = "Update Location"
         }
         
+        if(segue.identifier == "updatePasswordSegue"){
+            let propertyVC = segue.destination as! UpdateUserPropertyViewController
+            propertyVC.currentlyUpdating = "Password"
+            propertyVC.navItemHeader = "Update Password"
+        }
+        
         if segue.identifier == "settingsChangeAvatarSegue" {
             let popupMenu = segue.destination as! ChangeAvatarViewController
             popupMenu.segueFromController = "SettingsController"

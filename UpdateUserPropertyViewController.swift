@@ -11,6 +11,7 @@ import MapKit
 
 class UpdateUserPropertyViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDelegate, UISearchBarDelegate {
     
+    let userDefaults = Foundation.UserDefaults.standard
     var navItemHeader : String?
     var placeHolderText : String?
     var textFieldData : String?
@@ -22,6 +23,9 @@ class UpdateUserPropertyViewController: UIViewController, CLLocationManagerDeleg
     var placeMarkInfo : CLPlacemark?
     var annotations : [MKPointAnnotation] = []
     let span:MKCoordinateSpan = MKCoordinateSpanMake(0.1, 0.1)
+    let currentPassword = UITextField()
+    let newPassword = UITextField()
+    let confirmPassword = UITextField()
 
     
     @IBOutlet var nameTextField: UITextField!
@@ -134,6 +138,29 @@ class UpdateUserPropertyViewController: UIViewController, CLLocationManagerDeleg
                 locationManager.startUpdatingLocation()
             }
         }
+        
+        if(currentlyUpdating == "Password"){
+            var passwordTextfields : [UITextField] = []
+            currentPassword.placeholder = "Current Password"
+            newPassword.placeholder = "New Password"
+            confirmPassword.placeholder = "Confirm Password"
+            passwordTextfields.append(currentPassword)
+            passwordTextfields.append(newPassword)
+            passwordTextfields.append(confirmPassword)
+            self.drawPasswordTextFields(textFields: passwordTextfields)
+        }
+    }
+    
+    func drawPasswordTextFields(textFields : [UITextField]){
+        for (index,tf) in textFields.enumerated() {
+            let textViewHeightOffset = 60
+            let offsetHeight = textViewHeightOffset * (index + 1)
+            print(self.view.bounds.midX)
+            tf.frame = CGRect(x: 0, y: offsetHeight, width: Int(self.view.bounds.width * 0.75), height: 45)
+            tf.center.x = view.center.x
+            tf.backgroundColor = UIColor.blue
+            self.view.addSubview(tf)
+        }
     }
     
     //if we have no permission to access user location, then ask user for permission.
@@ -154,6 +181,10 @@ class UpdateUserPropertyViewController: UIViewController, CLLocationManagerDeleg
         
         if(currentlyUpdating == "Location" && placeMarkInfo != nil){
             self.buildAndSaveLocationObject(placemark: placeMarkInfo!)
+        }
+        
+        if(currentlyUpdating == "Password"){
+            self.saveNewPassword()
         }
     }
     
@@ -252,6 +283,45 @@ class UpdateUserPropertyViewController: UIViewController, CLLocationManagerDeleg
             NotificationCenter.default.post(name: NSNotification.Name(rawValue: Constants.NOTIFICATION.profileUpdated), object: nil) // notify that profile has been updated
             print("Success")
         }
+    }
+    
+    func saveNewPassword(){
+        if(validatePasswordTextFields()){
+            let data : [String : AnyObject] = [
+                "oldPassword" : currentPassword.text as AnyObject,
+                "newPassword" : newPassword.text as AnyObject,
+                "confirmPassword" : confirmPassword.text as AnyObject
+            ]
+            
+            UserService().updateUserPassword(data: data, completed: { (dictionary) in
+                print(dictionary)
+                let operationType : String = dictionary.value(forKey: "operationType") as! String
+                if(operationType == "UPDATE"){
+                    let oauthToken : [String : AnyObject] = dictionary["token"] as! [String : AnyObject]
+                    let accessToken = "Bearer ".appending(oauthToken["access_token"] as! String)
+                    self.userDefaults.set(accessToken, forKey: "access_token")  // update the token
+                }
+            })
+            
+        }
+    }
+    
+    func validatePasswordTextFields() -> Bool{
+        if((currentPassword.text?.characters.count)! <= 0){
+            return false
+        }
+        if((newPassword.text?.characters.count)! < 6){
+            //todo: show alert
+            return false
+        }
+        
+        if(newPassword.text != confirmPassword.text){
+            // todo: show alert
+            return false
+        }
+        
+        return true
+        
     }
     
 //    func mapView(_ mapView: MKMapView, viewFor annotation: MKAnnotation) -> MKAnnotationView? {
