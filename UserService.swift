@@ -28,6 +28,14 @@ class UserService {
         })
     }
     
+    func signupNewUser(signupRequest : [String : AnyObject], completed : @escaping FinishedFetchingData){
+        PostRequest().jsonPost(postUrl: Constants.API.signup, token: Constants.TOKEN.basicToken, body: signupRequest) { (dictionary) in
+            OperationQueue.main.addOperation{
+                completed(dictionary)
+            }
+        }
+    }
+    
     // Get a user's profile information by their id
     func getUserProfile(userId : String?, completed : @escaping FinishedFetchingData){
         var url : String = Constants.API.getUserProfile

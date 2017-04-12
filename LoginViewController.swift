@@ -13,6 +13,7 @@ class LoginViewController: UIViewController {
     let userDefaults = Foundation.UserDefaults.standard
     typealias FinishedStoringResponse = () -> ()
 
+    let locService = LocationService()
     
     @IBOutlet weak var emailTextField: UITextField!
     @IBOutlet weak var passwordTextField: UITextField!
@@ -20,6 +21,7 @@ class LoginViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        UserDefaults.standard.removePersistentDomain(forName: Bundle.main.bundleIdentifier!)
         self.hideKeyboardWhenTappedAround()
         // Do any additional setup after loading the view.
     }
@@ -64,6 +66,7 @@ class LoginViewController: UIViewController {
                     self.storeDefaultSearchFilter() // store the default search filter into user preferences
                     self.storeLoginResponse(response: dictionary, completed: { 
                         UserService().storeUserPlatformToken()  // store the user's device token once they have logged in
+                        self.locService.attemptUserLocationUpdate()
                     })
                     let storyboard = UIStoryboard(name: "Main", bundle: nil)
                     let viewController = storyboard.instantiateViewController(withIdentifier :"tabBarController") as! TabBarController
