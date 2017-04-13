@@ -11,7 +11,7 @@ import UIKit
 class BookPostingViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSource {
     
     let userDefaults = Foundation.UserDefaults.standard
-    let PROFILE_INDEX : Int = 1
+    let PROFILE_INDEX : Int = 3
     
     var imageHolder : UIImage?
     var tmbImageUrl : String?   // thumbnail image url
@@ -22,6 +22,7 @@ class BookPostingViewController: UIViewController, UIPickerViewDelegate, UIPicke
     var bookDictionary : [String : AnyObject] = [:]
     var condition : String?
     var status : String = "TRADE"
+    var dataSource : String?
     
     @IBOutlet weak var conditionTextField: UITextField!
     @IBOutlet weak var priceField: UITextField!
@@ -134,6 +135,10 @@ class BookPostingViewController: UIViewController, UIPickerViewDelegate, UIPicke
         }
         bookDictionary["description"] = descriptionTextField.text as AnyObject?
         bookDictionary["status"] = status as AnyObject?
+        bookDictionary["dataSource"] = self.dataSource! as AnyObject?
+        if let price = priceField.text as AnyObject? {
+            bookDictionary["price"] = price
+        }
         return bookDictionary
     }
 }

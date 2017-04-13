@@ -37,7 +37,7 @@ class TabBarController: UITabBarController, UITabBarControllerDelegate {
             let profileNavController = viewController as! UINavigationController
             let profileView : ProfileViewController = profileNavController.viewControllers[0] as! ProfileViewController
             profileView.isCurrentUsersProfile = true
-            self.getUserProfile(profileView: profileView)
+            self.setUpUserProfile(profileView: profileView)
         }
         
         if (viewController.restorationIdentifier == "messageNavigationController"){
@@ -55,22 +55,10 @@ class TabBarController: UITabBarController, UITabBarControllerDelegate {
     }
     
     // Get the current user's profile
-    func getUserProfile(profileView : ProfileViewController){
-        UserService().getUserProfile(userId: nil) { (dictionary) in
-            self.userDefaults.set(dictionary["name"], forKey: Constants.USER_DEFAULTS.nameKey)
-            self.userDefaults.set(dictionary["email"], forKey: Constants.USER_DEFAULTS.emailKey)
-            self.userDefaults.set(dictionary["pushNotification"], forKey: Constants.USER_DEFAULTS.notificationKey)
-            let userId : Int = dictionary["id"] as! Int
+    func setUpUserProfile(profileView : ProfileViewController){
+            let userId : Int = userDefaults.integer(forKey: Constants.USER_DEFAULTS.userIdKey)
             profileView.loadUserAvailableBooks(userId: String(userId))
             profileView.userId = String(userId)
-            if let avatarUrl : String = dictionary["avatar"] as? String{
-                self.userDefaults.set(avatarUrl, forKey: Constants.USER_DEFAULTS.userAvatar)
-            }
-            
-            if let bio : String = dictionary["bio"] as? String {
-                self.userDefaults.set(bio, forKey: Constants.USER_DEFAULTS.bioKey)
-            }
-        }
     }
     
     func setAvatarImage(imageUrl: String, imageView : UIImageView){

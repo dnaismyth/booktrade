@@ -15,9 +15,13 @@ class SearchViewController: UIViewController, UICollectionViewDelegate, UICollec
     
     let userDefaults = Foundation.UserDefaults.standard
     var filterPrefs : [String : AnyObject] = [:]
-    var bookContent : NSArray = []
+    var bookContent : [[String : AnyObject]] = [[:]]
     var searchActivated : Bool = false
     var cellToPass : BookSearchCollectionViewCell?
+    var pageNum : Int = 0
+    var numCells : Int = 0
+    var numBooksInResults : Int?
+    var reachedEndOfBookResults : Bool = false
     
     var cellTappedForProfileView : BookSearchCollectionViewCell?
     let avatarGestureRecognizer = UITapGestureRecognizer(target: self, action: #selector(avatarTapped(tapGestureRecognizer:)))
@@ -110,13 +114,14 @@ class SearchViewController: UIViewController, UICollectionViewDelegate, UICollec
     }
         
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return bookContent.count
+        return numCells
     }
 
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = searchCollectionView.dequeueReusableCell(withReuseIdentifier: "searchBookCell", for: indexPath) as! BookSearchCollectionViewCell
         cell.delegate = self
-        let book = self.bookContent[indexPath.item] as! [String : AnyObject]
+        print(indexPath.item)
+        let book = self.bookContent[indexPath.item]
         let owner = book["owner"] as! [String : AnyObject]
         cell.layer.cornerRadius = CGFloat(Constants.DESIGN.cellRadius)
         cell.bookId = book["id"] as? Int
@@ -127,7 +132,7 @@ class SearchViewController: UIViewController, UICollectionViewDelegate, UICollec
         cell.condition = book["condition"] as? String
         cell.itemDescription = book["description"] as? String
         cell.ownerName.setTitle(owner["name"] as? String, for: .normal)
-        cell.ownerName.titleLabel?.textAlignment = NSTextAlignment.left
+        cell.ownerName.contentHorizontalAlignment = .left
         cell.ownerId = owner["id"] as? Int
         cell.uploadedTime.text = (book["uploadedTime"] as? String)! + " ago. "
         cell.ownerName.isUserInteractionEnabled = true
@@ -151,15 +156,21 @@ class SearchViewController: UIViewController, UICollectionViewDelegate, UICollec
         cell.ownerAvatar.layer.cornerRadius = (0.5 * cell.ownerAvatar.bounds.size.width)
         cell.ownerAvatar.clipsToBounds = true
         cell.addGestureRecognizer(avatarGestureRecognizer)
-        
-        if let bookCategory : String = book["category"] as? String {
-            if(bookCategory == "FREE"){
+        let bookCategory = book["category"] as? String
+        if bookCategory != nil && bookCategory == "FREE"{
                 cell.priceLabel.text = "Free"
                 cell.priceLabel.backgroundColor = Constants.COLOR.freeGreen
                 cell.priceLabel.layer.cornerRadius = CGFloat(Constants.DESIGN.cellRadius)
                 cell.priceLabel.textAlignment = NSTextAlignment.center
                 cell.priceLabel.textColor = UIColor.white
-            }
+        } else {
+            cell.priceLabel.text = "$".appending(String(describing: book["price"] as? Int))
+        }
+        
+        // Check if the last row number is the same as the last current data element
+        if indexPath.row == self.bookContent.count - 1 {
+            self.pageNum = (pageNum + 1)
+            self.getMostRecentBooks()
         }
         
         return cell
@@ -198,10 +209,24 @@ class SearchViewController: UIViewController, UICollectionViewDelegate, UICollec
     
     // Search books by title & author
     func searchBooksWithoutFilter(searchValue : String){
+        guard !self.reachedEndOfBookResults else {
+            return
+        }
         let token : String = userDefaults.string(forKey: "access_token")!
-        BookService().searchBooks(token: token, value: searchValue, page: String(0), size: String(50)) { (dictionary) in
+        BookService().searchBooks(token: token, value: searchValue, page: String(self.pageNum), size: Constants.SCROLL.pageSize) { (dictionary) in
             OperationQueue.main.addOperation {
-                self.bookContent = dictionary.value(forKey: "content") as! NSArray
+                self.numBooksInResults = dictionary.value(forKey: "totalElements") as! Int?
+                self.numCells = self.numCells + (dictionary.value(forKey: "numberOfElements") as! Int)
+                if(self.bookContent.count <= 1){
+                    self.bookContent = dictionary.value(forKey: "content") as! [[String : AnyObject]]
+                } else {
+                    let additionalContent : [[String : AnyObject]] = dictionary.value(forKey: "content") as! [[String : AnyObject]]
+                    for content in additionalContent {
+                        self.bookContent.append(content)
+                    }
+                }
+                
+                self.flagReachedEndOfBookResultContent()
                 self.searchCollectionView.reloadData()
             }
         }
@@ -209,10 +234,24 @@ class SearchViewController: UIViewController, UICollectionViewDelegate, UICollec
     
     // Filtered book search
     func searchBooksWithFilter(filter : String){
+        guard !self.reachedEndOfBookResults else {
+            return
+        }
         let token : String = userDefaults.string(forKey: "access_token")!
-        BookService().filterSearchBooks(token: token, filter: filter, page: String(0), size: String(50)) { (dictionary) in
+        BookService().filterSearchBooks(token: token, filter: filter, page: String(self.pageNum), size: Constants.SCROLL.pageSize) { (dictionary) in
             OperationQueue.main.addOperation {
-                self.bookContent = dictionary.value(forKey: "content") as! NSArray
+                self.numBooksInResults = dictionary.value(forKey: "totalElements") as! Int?
+                self.numCells = self.numCells + (dictionary.value(forKey: "numberOfElements") as! Int)
+                if(self.bookContent.count <= 1){
+                    self.bookContent = dictionary.value(forKey: "content") as! [[String : AnyObject]]
+                } else {
+                    let additionalContent : [[String : AnyObject]] = dictionary.value(forKey: "content") as! [[String : AnyObject]]
+                    for content in additionalContent {
+                        self.bookContent.append(content)
+                    }
+                }
+                
+                self.flagReachedEndOfBookResultContent()
                 self.searchCollectionView.reloadData()
             }
         }
@@ -220,10 +259,25 @@ class SearchViewController: UIViewController, UICollectionViewDelegate, UICollec
     
     // Initially display most recent, nearby books
     func getMostRecentBooks(){
+        guard !self.reachedEndOfBookResults else {
+            return
+        }
         let token : String = userDefaults.string(forKey: "access_token")!
-        BookService().getMostRecentBooks(token: token, page: String(0), size: String(50)) { (dictionary) in
+        BookService().getMostRecentBooks(token: token, page: String(self.pageNum), size: Constants.SCROLL.pageSize) { (dictionary) in
             OperationQueue.main.addOperation {
-                self.bookContent = dictionary.value(forKey: "content") as! NSArray
+                self.numCells = self.numCells + (dictionary.value(forKey: "numberOfElements") as! Int)
+                self.numBooksInResults = dictionary.value(forKey: "totalElements") as! Int?
+                print("Current book content count is: \(self.bookContent.count)")
+                if(self.bookContent.count <= 1){    // might have to change this back to <= 1
+                    self.bookContent = dictionary.value(forKey: "content") as! [[String : AnyObject]]
+                } else {
+                    let additionalContent : [[String : AnyObject]] = dictionary.value(forKey: "content") as! [[String : AnyObject]]
+                    for content in additionalContent {
+                        self.bookContent.append(content)
+                    }
+                }
+                print("After book content count is: \(self.bookContent.count)")
+                self.flagReachedEndOfBookResultContent()
                 self.searchCollectionView.reloadData()
             }
         }
@@ -265,6 +319,13 @@ class SearchViewController: UIViewController, UICollectionViewDelegate, UICollec
                 destination.isCurrentUsersProfile = true
             }
             
+        }
+    }
+    
+    func flagReachedEndOfBookResultContent(){
+        print("Number of books in the results \(self.numBooksInResults)")
+        if(self.bookContent.count >= self.numBooksInResults!){
+            self.reachedEndOfBookResults = true
         }
     }
     

@@ -65,8 +65,8 @@ class LoginViewController: UIViewController {
                 if(dictionary["access_token"] != nil){
                     self.storeDefaultSearchFilter() // store the default search filter into user preferences
                     self.storeLoginResponse(response: dictionary, completed: { 
-                        UserService().storeUserPlatformToken()  // store the user's device token once they have logged in
                         self.locService.attemptUserLocationUpdate()
+                        self.getUserProfile()
                     })
                     let storyboard = UIStoryboard(name: "Main", bundle: nil)
                     let viewController = storyboard.instantiateViewController(withIdentifier :"tabBarController") as! TabBarController
@@ -79,6 +79,22 @@ class LoginViewController: UIViewController {
                 }
             }
         })
+    }
+    
+    // Get the current user's profile
+    func getUserProfile(){
+        UserService().getUserProfile(userId: nil) { (dictionary) in
+            self.userDefaults.set(dictionary["name"], forKey: Constants.USER_DEFAULTS.nameKey)
+            self.userDefaults.set(dictionary["email"], forKey: Constants.USER_DEFAULTS.emailKey)
+            self.userDefaults.set(dictionary["pushNotification"], forKey: Constants.USER_DEFAULTS.notificationKey)
+            if let avatarUrl : String = dictionary["avatar"] as? String{
+                self.userDefaults.set(avatarUrl, forKey: Constants.USER_DEFAULTS.userAvatar)
+            }
+            
+            if let bio : String = dictionary["bio"] as? String {
+                self.userDefaults.set(bio, forKey: Constants.USER_DEFAULTS.bioKey)
+            }
+        }
     }
     
     private func storeLoginResponse(response : NSDictionary, completed : FinishedStoringResponse ){

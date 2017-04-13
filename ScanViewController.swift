@@ -15,7 +15,7 @@ class ScanViewController: UIViewController, AVCaptureMetadataOutputObjectsDelega
     @IBOutlet weak var coverImage: UIImageView!
     @IBOutlet weak var bookTitle: UILabel!
     @IBOutlet weak var authorLabel: UILabel!
-
+    var bookSource : String?
     
     var captureSession:AVCaptureSession?
     var videoPreviewLayer:AVCaptureVideoPreviewLayer?
@@ -92,6 +92,7 @@ class ScanViewController: UIViewController, AVCaptureMetadataOutputObjectsDelega
             self.authorLabel.text = dictionary.value(forKey: "name") as! String?
             self.largeImageUrl = (dictionary.value(forKey: "image_url") as! String?)!
             self.smallImageUrl = dictionary.value(forKey: "small_image_url") as! String?
+            self.bookSource = Constants.BOOKSOURCE.goodreads
             if(self.largeImageUrl != nil){
                 self.setBookImage(imageUrl: self.largeImageUrl!)
             }
@@ -169,6 +170,7 @@ class ScanViewController: UIViewController, AVCaptureMetadataOutputObjectsDelega
             bookPostingView.authorHolder = self.authorLabel.text
             bookPostingView.mainImageUrl = self.largeImageUrl   // main, larger image
             bookPostingView.tmbImageUrl = self.smallImageUrl // thumbnail image
+            bookPostingView.dataSource = self.bookSource!
             if(self.capturedISBN != nil){
                 bookPostingView.isbnHolder = self.capturedISBN!
             }
