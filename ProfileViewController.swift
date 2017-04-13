@@ -15,6 +15,12 @@ class ProfileViewController: UIViewController, UICollectionViewDelegate, UIColle
     var userId : String?    // id of the user's profile in view
     var bookStatusPopup : BookStatusPopupView!
     
+    // Pagination variables
+    var pageNum : Int = 0
+    var numCells : Int = 0
+    var numBooksInResults : Int?
+    var reachedEndOfBookResults : Bool = false
+    
     /**
      Properties belonging to user's other than the current user, these will be loaded to display into the view
     **/
@@ -24,6 +30,7 @@ class ProfileViewController: UIViewController, UICollectionViewDelegate, UIColle
     var userLocation : String?
     var popupShowing : Bool = false
     
+    @IBOutlet var bookStatusSegmentControl: UISegmentedControl!
     @IBOutlet weak var bookCollectionView: UICollectionView!
     @IBOutlet weak var avatarImage: UIImageView!
     @IBOutlet weak var userNameLabel: UILabel!
@@ -31,7 +38,7 @@ class ProfileViewController: UIViewController, UICollectionViewDelegate, UIColle
     @IBOutlet weak var bioLabel: UILabel!
     
     var ownersBooks : [String : AnyObject] = [:]
-    var bookContent : NSMutableArray = []
+    var bookContent : [[String : AnyObject]] = [[:]]
     var cellToPass : BookCollectionViewCell?
     var isCurrentUsersProfile : Bool?
     var longTapGesture : UILongPressGestureRecognizer?
@@ -142,12 +149,12 @@ class ProfileViewController: UIViewController, UICollectionViewDelegate, UIColle
     }
 
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return self.bookContent.count
+        return numCells
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = bookCollectionView.dequeueReusableCell(withReuseIdentifier: "bookCell", for: indexPath) as! BookCollectionViewCell
-        let book = self.bookContent[indexPath.item] as! [String : AnyObject]
+        let book = self.bookContent[indexPath.item]
         let owner = book["owner"] as! [String : AnyObject]
         cell.bookId = book["id"] as? Int
         cell.author = book["author"] as? String
@@ -165,6 +172,16 @@ class ProfileViewController: UIViewController, UICollectionViewDelegate, UIColle
         
         if let imageUrl : String = book ["imageUrl"] as? String {
             self.setBookImage(imageUrl: imageUrl, cell: cell)
+        }
+        
+        // Check if the last row number is the same as the last current data element
+        if indexPath.row == self.bookContent.count - 1 {
+            self.pageNum = (pageNum + 1)
+            if(self.bookStatusSegmentControl.selectedSegmentIndex == 0){
+                self.loadUserAvailableBooks(userId: self.userId!)
+            } else {
+                self.loadUserUnavailableBooks(userId: self.userId!)
+            }
         }
         
         return cell
@@ -190,38 +207,59 @@ class ProfileViewController: UIViewController, UICollectionViewDelegate, UIColle
     
     // Load all of the books that are currently available by the user
     func loadUserAvailableBooks(userId : String){
-        self.bookContent = []
+        guard !self.reachedEndOfBookResults else {
+            return
+        }
         let token : String = userDefaults.string(forKey: "access_token")!
-        BookService().findAvailableBooksByUserId(token: token, userId: userId, page: String(0), size: String(5)) { (dictionary) in
+        BookService().findAvailableBooksByUserId(token: token, userId: userId, page: String(self.pageNum), size: Constants.SCROLL.pageSize) { (dictionary) in
             OperationQueue.main.addOperation{
-                if let content : NSArray = dictionary.value(forKey: "content") as? NSArray{
-                    self.bookContent = content.mutableCopy() as! NSMutableArray
-                    self.bookCollectionView.reloadData()
+                self.numBooksInResults = dictionary.value(forKey: "totalElements") as! Int?
+                self.numCells = self.numCells + (dictionary.value(forKey: "numberOfElements") as! Int)
+                if(self.bookContent.count <= 1){
+                    self.bookContent = dictionary.value(forKey: "content") as! [[String : AnyObject]]
                 } else {
-                    print("Error getting content")
+                    let additionalContent : [[String : AnyObject]] = dictionary.value(forKey: "content") as! [[String : AnyObject]]
+                    for content in additionalContent {
+                        self.bookContent.append(content)
+                    }
                 }
-  
+                
+                self.flagReachedEndOfBookResultContent()
+                self.bookCollectionView.reloadData()
             }
         }
     }
     
     // Load all of the books that are no longer available by the user
     func loadUserUnavailableBooks(userId: String){
-        self.bookContent = []
+        guard !self.reachedEndOfBookResults else {
+            return
+        }
         let token : String = userDefaults.string(forKey: "access_token")!
-        BookService().findUnavailableBooksByUserId(token: token, userId: userId, page: String(0), size: String(5)) { (dictionary) in
+        BookService().findUnavailableBooksByUserId(token: token, userId: userId, page: String(self.pageNum), size: Constants.SCROLL.pageSize) { (dictionary) in
             OperationQueue.main.addOperation {
-                let responseContent = dictionary.value(forKey: "content") as! NSArray
-                self.bookContent = responseContent.mutableCopy() as! NSMutableArray
+                self.numBooksInResults = dictionary.value(forKey: "totalElements") as! Int?
+                self.numCells = self.numCells + (dictionary.value(forKey: "numberOfElements") as! Int)
+                if(self.bookContent.count <= 1){
+                    self.bookContent = dictionary.value(forKey: "content") as! [[String : AnyObject]]
+                } else {
+                    let additionalContent : [[String : AnyObject]] = dictionary.value(forKey: "content") as! [[String : AnyObject]]
+                    for content in additionalContent {
+                        self.bookContent.append(content)
+                    }
+                }
+                
+                self.flagReachedEndOfBookResultContent()
                 self.bookCollectionView.reloadData()
             }
         }
     }
     
     @IBAction func bookStatusView(_ sender: UISegmentedControl) {
+        self.bookContent = []
+        self.resetPaginationValues()
         switch sender.selectedSegmentIndex {
         case 0:
-            // Load books that are available
             self.loadUserAvailableBooks(userId: self.userId!)
             break
         case 1:
@@ -322,11 +360,25 @@ class ProfileViewController: UIViewController, UICollectionViewDelegate, UIColle
             OperationQueue.main.addOperation {
                 print(dictionary)
                 popup.removeFromSuperview()
-                self.bookContent.removeObject(at: (popup.cellIndexPath?.item)!)
+                self.bookContent.remove(at: (popup.cellIndexPath?.item)!)
                 self.bookCollectionView.deleteItems(at: [popup.cellIndexPath!])
                 // show alert
             }
         }
+    }
+    
+    func flagReachedEndOfBookResultContent(){
+        print("Number of books in the results \(self.numBooksInResults)")
+        if(self.bookContent.count >= self.numBooksInResults!){
+            self.reachedEndOfBookResults = true
+        }
+    }
+    
+    func resetPaginationValues(){
+        self.pageNum = 0
+        self.numCells = 0
+        self.numBooksInResults = 0
+        self.reachedEndOfBookResults = false
     }
 
     /*
