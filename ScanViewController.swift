@@ -98,8 +98,10 @@ class ScanViewController: UIViewController, AVCaptureMetadataOutputObjectsDelega
             self.bookSource = Constants.BOOKSOURCE.goodreads
             if(self.largeImageUrl != nil){
                 self.setBookImage(imageUrl: self.largeImageUrl!)
+            } else {
+                // set default image
+                self.showBookConfirmationPopup()
             }
-            self.showBookConfirmationPopup()
         }
     }
     
@@ -110,6 +112,7 @@ class ScanViewController: UIViewController, AVCaptureMetadataOutputObjectsDelega
             let data = try? Data(contentsOf: url!) //make sure your image in this url does exist, otherwise unwrap in a if let check / try-catch
             DispatchQueue.main.async {
                 self.coverImage = UIImage(data: data!)
+                self.showBookConfirmationPopup()
             }
         }
     }
@@ -117,7 +120,7 @@ class ScanViewController: UIViewController, AVCaptureMetadataOutputObjectsDelega
     func setupScanner(){
         // Get an instance of the AVCaptureDevice class to initialize a device object and provide the video as the media type parameter.
         let captureDevice = AVCaptureDevice.defaultDevice(withMediaType: AVMediaTypeVideo)
-         
+        
         do {
             // Get an instance of the AVCaptureDeviceInput class using the previous device object.
             let input = try AVCaptureDeviceInput(device: captureDevice)
@@ -196,7 +199,9 @@ class ScanViewController: UIViewController, AVCaptureMetadataOutputObjectsDelega
         self.bookConfirmationPopup = BookConfirmationPopupView(frame: CGRect(x: 10, y: 100, width: 300, height: 375))
         self.bookConfirmationPopup.authorLabel.text = self.author
         self.bookConfirmationPopup.bookTitle.text = self.bookTitle
-        self.bookConfirmationPopup.coverImage.image = self.coverImage
+        if(self.coverImage != nil){
+            self.bookConfirmationPopup.coverImage.image = self.coverImage!
+        }
         self.bookConfirmationPopup.delegate = self
         self.view.addSubview(self.bookConfirmationPopup)
     }

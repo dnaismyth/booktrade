@@ -164,7 +164,7 @@ class SearchViewController: UIViewController, UICollectionViewDelegate, UICollec
                 cell.priceLabel.textAlignment = NSTextAlignment.center
                 cell.priceLabel.textColor = UIColor.white
         } else {
-            cell.priceLabel.text = "$".appending(String(describing: book["price"] as? Int))
+            cell.priceLabel.text = "$".appending(String(describing: book["price"] as! Int)) // todo: in future update to use ISO codes
         }
         
         // Check if the last row number is the same as the last current data element

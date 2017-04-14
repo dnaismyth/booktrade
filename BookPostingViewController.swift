@@ -23,6 +23,8 @@ class BookPostingViewController: UIViewController, UIPickerViewDelegate, UIPicke
     var condition : String?
     var status : String = "TRADE"
     var dataSource : String?
+    let currencyFormatter = NumberFormatter()
+
     
     @IBOutlet weak var conditionTextField: UITextField!
     @IBOutlet weak var priceField: UITextField!
@@ -38,7 +40,9 @@ class BookPostingViewController: UIViewController, UIPickerViewDelegate, UIPicke
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        priceField.delegate = self
+        priceField.addTarget(self, action: #selector(textFieldDidChange(priceField:)), for: UIControlEvents.editingChanged)
+        currencyFormatter.numberStyle = NumberFormatter.Style.currency
+        currencyFormatter.internationalCurrencySymbol = NSLocale.current.localizedString(forCurrencyCode: Locale.current.currencyCode!)
         // Do any additional setup after loading the view.
     }
     
@@ -75,15 +79,15 @@ class BookPostingViewController: UIViewController, UIPickerViewDelegate, UIPicke
         }
     }
     
-    func textFieldDidBeginEditing(_ textField: UITextField) {
-        if(textField.restorationIdentifier == "priceTextField"){
-            let price = Int(textField.text!)
-            let _curFormatter : NumberFormatter = NumberFormatter()
-            _curFormatter.numberStyle = NumberFormatter.Style.currency
-            _curFormatter.maximumFractionDigits = 0
-            let total = _curFormatter.string(from: NSNumber(value: price!))
-            textField.text = total
+    func textFieldDidChange(priceField: UITextField) {
+        let text = self.priceField.text!.replacingOccurrences(of:currencyFormatter.currencySymbol, with: "").replacingOccurrences(of: currencyFormatter.groupingSeparator, with: "").replacingOccurrences(of: currencyFormatter.decimalSeparator, with: "")
+        print(text)
+        let myDouble : Double? = Double(text)
+        if(myDouble != nil){
+            let myNumber = NSNumber(value: (myDouble!/100.0))
+            self.priceField.text = currencyFormatter.string(from: myNumber)
         }
+        
     }
     
     // The number of columns of data
@@ -115,12 +119,12 @@ class BookPostingViewController: UIViewController, UIPickerViewDelegate, UIPicke
         switch sender.selectedSegmentIndex {
         case 0:
             print("Trade selected")
-            self.status = "TRADE"
+            self.status = "AVAILABLE"
             self.priceField.isHidden = true
             break
         case 1:
             print("Sell selected")
-            self.status = "SELL"
+            self.status = "AVAILABLE"
             self.priceField.isHidden = false
             break
         default:
@@ -148,8 +152,8 @@ class BookPostingViewController: UIViewController, UIPickerViewDelegate, UIPicke
         bookDictionary["description"] = descriptionTextField.text as AnyObject?
         bookDictionary["status"] = status as AnyObject?
         bookDictionary["dataSource"] = self.dataSource! as AnyObject?
-        if let price = priceField.text as AnyObject? {
-            bookDictionary["price"] = price
+        if let price = priceField.text as String? {
+            bookDictionary["price"] = (price.replacingOccurrences(of:currencyFormatter.currencySymbol, with: "")) as AnyObject?
         }
         return bookDictionary
     }
