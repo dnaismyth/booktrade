@@ -8,7 +8,7 @@
 
 import UIKit
 
-class BookPostingViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSource {
+class BookPostingViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSource, UITextFieldDelegate {
     
     let userDefaults = Foundation.UserDefaults.standard
     let PROFILE_INDEX : Int = 3
@@ -38,6 +38,7 @@ class BookPostingViewController: UIViewController, UIPickerViewDelegate, UIPicke
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        priceField.delegate = self
         // Do any additional setup after loading the view.
     }
     
@@ -71,6 +72,17 @@ class BookPostingViewController: UIViewController, UIPickerViewDelegate, UIPicke
         
         if(imageHolder != nil){
             coverImage.image = imageHolder!
+        }
+    }
+    
+    func textFieldDidBeginEditing(_ textField: UITextField) {
+        if(textField.restorationIdentifier == "priceTextField"){
+            let price = Int(textField.text!)
+            let _curFormatter : NumberFormatter = NumberFormatter()
+            _curFormatter.numberStyle = NumberFormatter.Style.currency
+            _curFormatter.maximumFractionDigits = 0
+            let total = _curFormatter.string(from: NSNumber(value: price!))
+            textField.text = total
         }
     }
     

@@ -9,12 +9,11 @@
 import UIKit
 import AVFoundation
 
-class ScanViewController: UIViewController, AVCaptureMetadataOutputObjectsDelegate {
+class ScanViewController: UIViewController, AVCaptureMetadataOutputObjectsDelegate, ScanOrCameraPopupViewDelegate, BookConfirmationPopupViewDelegate {
     
-    @IBOutlet weak var headerLabel: UILabel!
-    @IBOutlet weak var coverImage: UIImageView!
-    @IBOutlet weak var bookTitle: UILabel!
-    @IBOutlet weak var authorLabel: UILabel!
+    var scanOrCameraPopup : ScanOrCameraPopupView!
+    var bookConfirmationPopup : BookConfirmationPopupView!
+    
     var bookSource : String?
     
     var captureSession:AVCaptureSession?
@@ -24,6 +23,9 @@ class ScanViewController: UIViewController, AVCaptureMetadataOutputObjectsDelega
     var capturedISBN : String?
     var smallImageUrl : String?
     var largeImageUrl: String?
+    var bookTitle : String?
+    var author : String?
+    var coverImage : UIImage?
     
     let undectedBarcodeMessage : String = "Cannot read barcode."
     let supportedCodeTypes = [AVMetadataObjectTypeUPCECode,
@@ -39,7 +41,8 @@ class ScanViewController: UIViewController, AVCaptureMetadataOutputObjectsDelega
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        self.setupScanner()
+        self.showStatusPopup()
+        //self.setupScanner()
         // Do any additional setup after loading the view.
     }
 
@@ -88,14 +91,15 @@ class ScanViewController: UIViewController, AVCaptureMetadataOutputObjectsDelega
         let url : String = Constants.GOODREADS.searchByIsbn.appending(barcode)
         GetRequest().HTTPGetXML(getUrl: url, token: nil) { (dictionary) in
            print(dictionary)
-            self.bookTitle.text = dictionary.value(forKey: "title") as! String?
-            self.authorLabel.text = dictionary.value(forKey: "name") as! String?
+            self.bookTitle = dictionary.value(forKey: "title") as! String?
+            self.author = dictionary.value(forKey: "name") as! String?
             self.largeImageUrl = (dictionary.value(forKey: "image_url") as! String?)!
             self.smallImageUrl = dictionary.value(forKey: "small_image_url") as! String?
             self.bookSource = Constants.BOOKSOURCE.goodreads
             if(self.largeImageUrl != nil){
                 self.setBookImage(imageUrl: self.largeImageUrl!)
             }
+            self.showBookConfirmationPopup()
         }
     }
     
@@ -105,7 +109,7 @@ class ScanViewController: UIViewController, AVCaptureMetadataOutputObjectsDelega
         DispatchQueue.global().async {
             let data = try? Data(contentsOf: url!) //make sure your image in this url does exist, otherwise unwrap in a if let check / try-catch
             DispatchQueue.main.async {
-                self.coverImage.image = UIImage(data: data!)
+                self.coverImage = UIImage(data: data!)
             }
         }
     }
@@ -113,7 +117,7 @@ class ScanViewController: UIViewController, AVCaptureMetadataOutputObjectsDelega
     func setupScanner(){
         // Get an instance of the AVCaptureDevice class to initialize a device object and provide the video as the media type parameter.
         let captureDevice = AVCaptureDevice.defaultDevice(withMediaType: AVMediaTypeVideo)
-        
+         
         do {
             // Get an instance of the AVCaptureDeviceInput class using the previous device object.
             let input = try AVCaptureDeviceInput(device: captureDevice)
@@ -166,21 +170,58 @@ class ScanViewController: UIViewController, AVCaptureMetadataOutputObjectsDelega
         if segue.identifier == "bookPostingSegue" {
             print("Continue to posting.")
             let bookPostingView = segue.destination as! BookPostingViewController
-            bookPostingView.titleHolder = self.bookTitle.text
-            bookPostingView.authorHolder = self.authorLabel.text
+            bookPostingView.titleHolder = self.bookConfirmationPopup.bookTitle.text
+            bookPostingView.authorHolder = self.bookConfirmationPopup.authorLabel.text
             bookPostingView.mainImageUrl = self.largeImageUrl   // main, larger image
             bookPostingView.tmbImageUrl = self.smallImageUrl // thumbnail image
             bookPostingView.dataSource = self.bookSource!
             if(self.capturedISBN != nil){
                 bookPostingView.isbnHolder = self.capturedISBN!
             }
-            bookPostingView.imageHolder = self.coverImage.image
+            bookPostingView.imageHolder = self.bookConfirmationPopup.coverImage.image
         }
     }
     
     @IBAction func backToScannerButton(_ sender: UIButton) {
         print("Back to scanner")
     }
+    
+    func showStatusPopup(){
+        self.scanOrCameraPopup = ScanOrCameraPopupView(frame: CGRect(x: 10, y: 200, width: 300, height: 200))
+        self.scanOrCameraPopup.delegate = self
+        self.view.addSubview(self.scanOrCameraPopup)
+    }
+    
+    func showBookConfirmationPopup(){
+        self.bookConfirmationPopup = BookConfirmationPopupView(frame: CGRect(x: 10, y: 100, width: 300, height: 375))
+        self.bookConfirmationPopup.authorLabel.text = self.author
+        self.bookConfirmationPopup.bookTitle.text = self.bookTitle
+        self.bookConfirmationPopup.coverImage.image = self.coverImage
+        self.bookConfirmationPopup.delegate = self
+        self.view.addSubview(self.bookConfirmationPopup)
+    }
+    
+    func useCameraIsSelected(popup: ScanOrCameraPopupView) {
+        print("Camera is selected!")
+        //TODO Show camera.
+    }
+    
+    func scanBarcodeIsSelected(popup: ScanOrCameraPopupView) {
+        print("Scan barcode is selected!")
+        self.setupScanner()
+        self.scanOrCameraPopup.removeFromSuperview()
+    }
+    
+    func continueIsSelected(popup: BookConfirmationPopupView) {
+        print("Continuing!")
+        performSegue(withIdentifier: "bookPostingSegue", sender: self)
+    }
+    
+    func tryAgainIsSelected(popup: BookConfirmationPopupView) {
+        print("try again!")
+    }
+    
+    
     
 
     /*
