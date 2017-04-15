@@ -11,6 +11,7 @@ import UIKit
 protocol ScanOrCameraPopupViewDelegate{
     func useCameraIsSelected(popup : ScanOrCameraPopupView)
     func scanBarcodeIsSelected(popup : ScanOrCameraPopupView)
+    func useCameraLibraryIsSelected(popup : ScanOrCameraPopupView)
 }
 class ScanOrCameraPopupView: UIView {
     
@@ -19,6 +20,7 @@ class ScanOrCameraPopupView: UIView {
     
     @IBOutlet var scanBarcodeButton: UIButton!
     @IBOutlet var useCameraButton: UIButton!
+    @IBOutlet var useLibraryButton: UIButton!
     
     //MARK:
     func loadViewFromNib() {
@@ -49,6 +51,9 @@ class ScanOrCameraPopupView: UIView {
         self.delegate?.useCameraIsSelected(popup: self)
     }
     
+    @IBAction func useLibraryAction(_ sender: Any) {
+        self.delegate?.useCameraLibraryIsSelected(popup: self)
+    }
     
 
 }

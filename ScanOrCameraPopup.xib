@@ -13,6 +13,7 @@
             <connections>
                 <outlet property="scanBarcodeButton" destination="fxD-md-xFJ" id="Qd6-ZX-WGS"/>
                 <outlet property="useCameraButton" destination="aJJ-sI-Adw" id="jyU-dh-fDm"/>
+                <outlet property="useLibraryButton" destination="7y2-6H-FWM" id="UKL-tg-lYF"/>
             </connections>
         </placeholder>
         <placeholder placeholderIdentifier="IBFirstResponder" id="-2" customClass="UIResponder"/>
@@ -29,11 +30,19 @@
                     </connections>
                 </button>
                 <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="aJJ-sI-Adw">
-                    <rect key="frame" x="251" y="76" width="85" height="30"/>
+                    <rect key="frame" x="247" y="76" width="93" height="30"/>
                     <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                    <state key="normal" title="Use Camera"/>
+                    <state key="normal" title="From Camera"/>
                     <connections>
                         <action selector="useCameraAction:" destination="-1" eventType="touchUpInside" id="23l-1K-0xY"/>
+                    </connections>
+                </button>
+                <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="7y2-6H-FWM">
+                    <rect key="frame" x="144" y="118" width="87" height="30"/>
+                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                    <state key="normal" title="From Library"/>
+                    <connections>
+                        <action selector="useLibraryAction:" destination="-1" eventType="touchUpInside" id="fnM-gN-DUx"/>
                     </connections>
                 </button>
             </subviews>
