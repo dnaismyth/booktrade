@@ -35,6 +35,8 @@ class ScanViewController: UIViewController, AVCaptureMetadataOutputObjectsDelega
     var selectedImageUrl: NSURL!
     var imageSelected = false
     var isFromCamera: Bool = false
+    var userCanEdit : Bool = false
+    var saveChangesSelected : Bool = true
     
     let undectedBarcodeMessage : String = "Cannot read barcode."
     let supportedCodeTypes = [AVMetadataObjectTypeUPCECode,
@@ -102,8 +104,9 @@ class ScanViewController: UIViewController, AVCaptureMetadataOutputObjectsDelega
            print(dictionary)
             self.bookTitle = dictionary.value(forKey: "title") as! String?
             self.author = dictionary.value(forKey: "name") as! String?
-            self.largeImageUrl = (dictionary.value(forKey: "image_url") as! String?)!
-            self.smallImageUrl = dictionary.value(forKey: "small_image_url") as! String?
+            let imageUrl : String = (dictionary.value(forKey: "image_url") as! String?)!
+            self.smallImageUrl = imageUrl
+            self.largeImageUrl = self.formatLargeImageUrl(url: imageUrl)
             self.bookSource = Constants.BOOKSOURCE.goodreads
             if(self.largeImageUrl != nil){
                 self.setBookImage(imageUrl: self.largeImageUrl!)
@@ -111,6 +114,18 @@ class ScanViewController: UIViewController, AVCaptureMetadataOutputObjectsDelega
                 // set default image
                 self.showBookConfirmationPopup()
             }
+        }
+    }
+    
+    func formatLargeImageUrl(url : String) -> String {
+        if(url.contains(Constants.GOODREADS.baseUrl)){
+            let index = Constants.GOODREADS.baseUrl.index(Constants.GOODREADS.baseUrl.startIndex, offsetBy : Constants.GOODREADS.baseUrl.characters.count)
+            var splitUrl : String = Constants.GOODREADS.baseUrl.substring(from: index)
+            print(splitUrl)
+            splitUrl = splitUrl.replacingOccurrences(of: "m/", with: "l/")
+            return Constants.GOODREADS.baseUrl.appending(splitUrl)
+        } else {
+            return url
         }
     }
     
@@ -183,8 +198,8 @@ class ScanViewController: UIViewController, AVCaptureMetadataOutputObjectsDelega
             print("Continue to posting.")
             let bookPostingView = segue.destination as! BookPostingViewController
             if(!isFromCamera){
-                bookPostingView.titleHolder = self.bookConfirmationPopup.bookTitle.text
-                bookPostingView.authorHolder = self.bookConfirmationPopup.authorLabel.text
+                bookPostingView.titleHolder = self.bookConfirmationPopup.titleTextField.text
+                bookPostingView.authorHolder = self.bookConfirmationPopup.authorTextField.text
                 bookPostingView.tmbImageUrl = self.smallImageUrl // thumbnail image
 
             }
@@ -210,8 +225,11 @@ class ScanViewController: UIViewController, AVCaptureMetadataOutputObjectsDelega
     func showBookConfirmationPopup(){
         self.bookConfirmationPopup = BookConfirmationPopupView(frame: CGRect(x: 10, y: 100, width: 300, height: 375))
         if(!isFromCamera){
-            self.bookConfirmationPopup.authorLabel.text = self.author
-            self.bookConfirmationPopup.bookTitle.text = self.bookTitle
+            self.bookConfirmationPopup.authorTextField.text = self.author
+            self.bookConfirmationPopup.titleTextField.text = self.bookTitle
+            self.toggleEditingTextFields(popup: bookConfirmationPopup)
+        } else {
+            self.bookConfirmationPopup.editButton.isHidden = true   // fields will already be editable, no need to show this button
         }
         if(self.coverImage != nil){
             self.bookConfirmationPopup.coverImage.image = self.coverImage!
@@ -308,9 +326,31 @@ class ScanViewController: UIViewController, AVCaptureMetadataOutputObjectsDelega
         print("try again!")
     }
     
+    func editButtonIsSelected(popup: BookConfirmationPopupView) {
+        if(self.saveChangesSelected){
+            popup.editButton.titleLabel?.text = "Save"
+            self.userCanEdit = true
+            self.saveChangesSelected = false
+        } else if (self.userCanEdit){
+            popup.editButton.titleLabel?.text = "Edit"
+            self.saveChangesSelected = true
+            self.userCanEdit = false
+        }
+        
+        self.toggleEditingTextFields(popup: popup)
+    }
     
+    func toggleEditingTextFields(popup : BookConfirmationPopupView){
+        if(userCanEdit){
+            popup.authorTextField.isUserInteractionEnabled = true
+            popup.titleTextField.isUserInteractionEnabled = true
+        } else {
+            popup.authorTextField.isUserInteractionEnabled = false
+            popup.titleTextField.isUserInteractionEnabled = false
+        }
+        
+    }
     
-
     /*
     // MARK: - Navigation
 

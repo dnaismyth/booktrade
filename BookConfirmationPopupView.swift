@@ -11,15 +11,17 @@ import UIKit
 protocol BookConfirmationPopupViewDelegate {
     func continueIsSelected(popup : BookConfirmationPopupView)
     func tryAgainIsSelected(popup : BookConfirmationPopupView)
+    func editButtonIsSelected(popup : BookConfirmationPopupView)
 }
 class BookConfirmationPopupView: UIView {
     
-    @IBOutlet var popupTitleLabel: UILabel!
     @IBOutlet var coverImage: UIImageView!
-    @IBOutlet var bookTitle: UILabel!
-    @IBOutlet var authorLabel: UILabel!
+    @IBOutlet var titleTextField: UITextField!
+    @IBOutlet var authorTextField: UITextField!
+
     @IBOutlet var continueButton: UIButton!
     @IBOutlet var tryAgainButton: UIButton!
+    @IBOutlet var editButton: UIButton!
     
     var contentView:UIView!
     var delegate : BookConfirmationPopupViewDelegate!
@@ -54,5 +56,8 @@ class BookConfirmationPopupView: UIView {
         self.delegate?.tryAgainIsSelected(popup: self)
     }
     
+    @IBAction func editAction(_ sender: Any) {
+        self.delegate?.editButtonIsSelected(popup: self)
+    }
 
 }
