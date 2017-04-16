@@ -158,11 +158,7 @@ class SearchViewController: UIViewController, UICollectionViewDelegate, UICollec
         cell.addGestureRecognizer(avatarGestureRecognizer)
         let bookCategory = book["category"] as? String
         if bookCategory != nil && bookCategory == "FREE"{
-                cell.priceLabel.text = "Free"
-                cell.priceLabel.backgroundColor = Constants.COLOR.freeGreen
-                cell.priceLabel.layer.cornerRadius = CGFloat(Constants.DESIGN.cellRadius)
-                cell.priceLabel.textAlignment = NSTextAlignment.center
-                cell.priceLabel.textColor = UIColor.white
+                cell.priceLabel.createFreeLabel()
         } else if let price = book["price"] as? String {
             cell.priceLabel.text = "$".appending(String(describing: price)) // todo: in future update to use ISO codes
         }

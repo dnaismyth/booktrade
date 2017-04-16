@@ -43,7 +43,7 @@ class SignupViewController: UIViewController {
             let response : [String:AnyObject] = dictionary["data"] as! [String:AnyObject]
             if(response["access_token"] != nil){
                 self.storeDefaultSearchFilter()
-                self.storeSignupResponse(response: response as NSDictionary, completed: { 
+                UserService().storeLoginResponse(response: response as NSDictionary, completed: {
                     UserService().storeUserPlatformToken()
                     self.locService.attemptUserLocationUpdate()
                 })
@@ -99,16 +99,6 @@ class SignupViewController: UIViewController {
         
         return signupRequest
         
-    }
-    
-    private func storeSignupResponse(response : NSDictionary, completed : FinishedStoringResponse){
-        let access_token = "Bearer ".appending(response["access_token"] as! String)
-        let refresh_token = response["refresh_token"] as! String
-        let expires_in = response["expires_in"]
-        userDefaults.set( access_token , forKey: "access_token")
-        userDefaults.set( refresh_token, forKey: "refresh_token")
-        userDefaults.set( expires_in, forKey:"expires_in")
-        completed()
     }
     
     private func storeDefaultSearchFilter(){

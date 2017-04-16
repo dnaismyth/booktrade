@@ -307,7 +307,19 @@ class ScanViewController: UIViewController, AVCaptureMetadataOutputObjectsDelega
     
     func useCameraLibraryIsSelected(popup: ScanOrCameraPopupView) {
         scanOrCameraPopup.removeFromSuperview()
-        print("Liberary is selected")
+        imagePicker = UIImagePickerController()
+        imagePicker?.delegate = self
+        print("Library is selected")
+        if UIImagePickerController.isSourceTypeAvailable(.savedPhotosAlbum){
+            print("Button capture")
+            imagePicker!.sourceType = .savedPhotosAlbum;
+            imagePicker!.allowsEditing = false
+            self.present(imagePicker!, animated: true, completion: nil)
+            self.isFromCamera = true
+        } else {
+            print("No camera library")
+        }
+        
     }
     
     func scanBarcodeIsSelected(popup: ScanOrCameraPopupView) {

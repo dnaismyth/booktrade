@@ -32,6 +32,14 @@ class DeleteRequest {
                 return
             }
             
+            if let httpResponse = response as? HTTPURLResponse{
+                if(httpResponse.statusCode == 401){
+                    UserService().refreshToken(completed: { (dictionary) in
+                        UserService().storeLoginResponse(response: dictionary, completed: {})
+                    })
+                }
+            }
+            
             let json = try! JSONSerialization.jsonObject(with: data, options: [])
             completionHandler(json as! NSDictionary)
         }

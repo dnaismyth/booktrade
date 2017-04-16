@@ -71,6 +71,14 @@ class PostRequest : NSObject, NSURLConnectionDataDelegate {
                 return
             }
             
+            if let httpResponse = response as? HTTPURLResponse{
+                if(httpResponse.statusCode == 401){
+                    UserService().refreshToken(completed: { (dictionary) in
+                        UserService().storeLoginResponse(response: dictionary, completed: {})
+                    })
+                }
+            }
+            
             do {
                 let json = try JSONSerialization.jsonObject(with: data!, options: .mutableContainers) as? NSDictionary
                 if json != nil {

@@ -11,7 +11,8 @@ import Foundation
 class UserService {
     
     typealias FinishedFetchingData = (NSDictionary) -> ()
-    
+    typealias FinishedStoringResponse = () -> ()
+
     let userDefaults = Foundation.UserDefaults.standard
     
     // Save the current user's device token
@@ -152,6 +153,28 @@ class UserService {
                 completed(dictionary)
             }
         }
+    }
+    
+    // Refresh token if a 401 response is given
+    func refreshToken(completed : @escaping FinishedFetchingData){
+        let refreshToken = userDefaults.string(forKey: Constants.USER_DEFAULTS.refreshToken)
+        let form = "refresh_token=".appending(refreshToken!).appending("&grant_type=refresh_token")
+        PostRequest().urlencodedPost(postUrl: Constants.API.login, form: form) { (dictionary) in
+            OperationQueue.main.addOperation {
+                completed(dictionary)
+            }
+        }
+    }
+    
+    func storeLoginResponse(response : NSDictionary, completed : FinishedStoringResponse ){
+        let access_token = "Bearer ".appending(response["access_token"] as! String)
+        let refresh_token = response["refresh_token"] as! String
+        let expires_in = response["expires_in"]
+        userDefaults.set( access_token , forKey: "access_token")
+        userDefaults.set( refresh_token, forKey: Constants.USER_DEFAULTS.refreshToken)
+        userDefaults.set( expires_in, forKey:"expires_in")
+        print(refresh_token)
+        completed()
     }
     
 }

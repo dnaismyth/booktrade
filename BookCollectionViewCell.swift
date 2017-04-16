@@ -12,9 +12,9 @@ import UIKit
 class BookCollectionViewCell: UICollectionViewCell {
     
     @IBOutlet weak var coverImage: UIImageView!
-    
-    // Book title
-    var title : String?
+    @IBOutlet var bookTitleLabel: UILabel!
+    @IBOutlet var priceLabel: UILabel!
+    @IBOutlet var uploadedLabel: UILabel!
     
     // Book Author
     var author : String?
@@ -45,6 +45,19 @@ class BookCollectionViewCell: UICollectionViewCell {
     
     // Owner's location
     var location : String?
+    
+    required init(coder aDecoder: NSCoder) {
+        super.init(coder: aDecoder)!
+        self.layer.shadowOpacity = 0.25
+        self.layer.shadowRadius = 0.6
+        self.layer.shadowOffset = CGSize(width: 0, height: 1)
+        self.layer.shadowColor = UIColor.black.cgColor
+        self.layer.masksToBounds = false
+    }
+    
+    override func awakeFromNib() {
+        super.awakeFromNib()
+    }
     
     
 }

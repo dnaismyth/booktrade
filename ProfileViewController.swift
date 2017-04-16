@@ -74,9 +74,13 @@ class ProfileViewController: UIViewController, UICollectionViewDelegate, UIColle
     }
     
     func loadCurrentUsersProfile(){
-        let avatarUrl : String = userDefaults.string(forKey: Constants.USER_DEFAULTS.userAvatar)!
-        self.setAvatarImage(imageUrl: avatarUrl, imageView: self.avatarImage)
-        locationLabel.text = Utilities.buildLocationLabel(location: userDefaults.dictionary(forKey: Constants.USER_DEFAULTS.locationKey) as! [String : AnyObject])
+        if let avatarUrl : String = userDefaults.string(forKey: Constants.USER_DEFAULTS.userAvatar){
+            self.setAvatarImage(imageUrl: avatarUrl, imageView: self.avatarImage)
+        }
+        
+        if let location = userDefaults.dictionary(forKey: Constants.USER_DEFAULTS.locationKey) as? [String : AnyObject]{
+            locationLabel.text = Utilities.buildLocationLabel(location: location)
+        }
         bioLabel.text = userDefaults.string(forKey: Constants.USER_DEFAULTS.bioKey)
         userNameLabel.text = userDefaults.string(forKey: Constants.USER_DEFAULTS.nameKey)
         //TODO: Hide/show settings depending on if the current user.id = user.profile.id
@@ -134,7 +138,7 @@ class ProfileViewController: UIViewController, UICollectionViewDelegate, UIColle
     
     private func setPopupInfo (bookPopupInfo : BookPopupViewController, cell : BookCollectionViewCell){
         bookPopupInfo.authorToPass = cell.author
-        bookPopupInfo.titleToPass = cell.title
+        bookPopupInfo.titleToPass = cell.bookTitleLabel.text
         bookPopupInfo.coverImageToPass = cell.coverImage.image
         bookPopupInfo.ownerIdToPass = cell.ownerId
         bookPopupInfo.currentBookId = cell.bookId
@@ -153,12 +157,13 @@ class ProfileViewController: UIViewController, UICollectionViewDelegate, UIColle
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        let cell = bookCollectionView.dequeueReusableCell(withReuseIdentifier: "bookCell", for: indexPath) as! BookCollectionViewCell
+        let cell = bookCollectionView.dequeueReusableCell(withReuseIdentifier: "bookProfileCell", for: indexPath) as! BookCollectionViewCell
         let book = self.bookContent[indexPath.item]
         let owner = book["owner"] as! [String : AnyObject]
+        cell.layer.cornerRadius = CGFloat(Constants.DESIGN.cellRadius)
         cell.bookId = book["id"] as? Int
         cell.author = book["author"] as? String
-        cell.title = book["title"] as? String
+        cell.bookTitleLabel.text = book["title"] as? String
         cell.status = book["status"] as? String
         cell.barcode = book["barcode"] as? String
         cell.condition = book["condition"] as? String
@@ -213,19 +218,21 @@ class ProfileViewController: UIViewController, UICollectionViewDelegate, UIColle
         let token : String = userDefaults.string(forKey: "access_token")!
         BookService().findAvailableBooksByUserId(token: token, userId: userId, page: String(self.pageNum), size: Constants.SCROLL.pageSize) { (dictionary) in
             OperationQueue.main.addOperation{
-                self.numBooksInResults = dictionary.value(forKey: "totalElements") as! Int?
-                self.numCells = self.numCells + (dictionary.value(forKey: "numberOfElements") as! Int)
-                if(self.bookContent.count <= 1){
-                    self.bookContent = dictionary.value(forKey: "content") as! [[String : AnyObject]]
-                } else {
-                    let additionalContent : [[String : AnyObject]] = dictionary.value(forKey: "content") as! [[String : AnyObject]]
-                    for content in additionalContent {
-                        self.bookContent.append(content)
+                if let content = dictionary.value(forKey: "content") as? [[String : AnyObject]] {
+                    self.numBooksInResults = dictionary.value(forKey: "totalElements") as! Int?
+                    self.numCells = self.numCells + (dictionary.value(forKey: "numberOfElements") as! Int)
+                    if(self.bookContent.count <= 1){
+                        self.bookContent = content
+                    } else {
+                        let additionalContent : [[String : AnyObject]] = dictionary.value(forKey: "content") as! [[String : AnyObject]]
+                        for content in additionalContent {
+                            self.bookContent.append(content)
+                        }
                     }
+                    
+                    self.flagReachedEndOfBookResultContent()
+                    self.bookCollectionView.reloadData()
                 }
-                
-                self.flagReachedEndOfBookResultContent()
-                self.bookCollectionView.reloadData()
             }
         }
     }
@@ -238,19 +245,21 @@ class ProfileViewController: UIViewController, UICollectionViewDelegate, UIColle
         let token : String = userDefaults.string(forKey: "access_token")!
         BookService().findUnavailableBooksByUserId(token: token, userId: userId, page: String(self.pageNum), size: Constants.SCROLL.pageSize) { (dictionary) in
             OperationQueue.main.addOperation {
-                self.numBooksInResults = dictionary.value(forKey: "totalElements") as! Int?
-                self.numCells = self.numCells + (dictionary.value(forKey: "numberOfElements") as! Int)
-                if(self.bookContent.count <= 1){
-                    self.bookContent = dictionary.value(forKey: "content") as! [[String : AnyObject]]
-                } else {
-                    let additionalContent : [[String : AnyObject]] = dictionary.value(forKey: "content") as! [[String : AnyObject]]
-                    for content in additionalContent {
-                        self.bookContent.append(content)
+                if let content = dictionary.value(forKey: "content") as? [[String : AnyObject]]{
+                    self.numBooksInResults = dictionary.value(forKey: "totalElements") as! Int?
+                    self.numCells = self.numCells + (dictionary.value(forKey: "numberOfElements") as! Int)
+                    if(self.bookContent.count <= 1){
+                        self.bookContent = content
+                    } else {
+                        let additionalContent : [[String : AnyObject]] = dictionary.value(forKey: "content") as! [[String : AnyObject]]
+                        for content in additionalContent {
+                            self.bookContent.append(content)
+                        }
                     }
+                    
+                    self.flagReachedEndOfBookResultContent()
+                    self.bookCollectionView.reloadData()
                 }
-                
-                self.flagReachedEndOfBookResultContent()
-                self.bookCollectionView.reloadData()
             }
         }
     }

@@ -64,7 +64,7 @@ class LoginViewController: UIViewController {
             OperationQueue.main.addOperation{
                 if(dictionary["access_token"] != nil){
                     self.storeDefaultSearchFilter() // store the default search filter into user preferences
-                    self.storeLoginResponse(response: dictionary, completed: { 
+                    UserService().storeLoginResponse(response: dictionary, completed: {
                         self.locService.attemptUserLocationUpdate()
                         self.getUserProfile()
                     })
@@ -95,16 +95,6 @@ class LoginViewController: UIViewController {
                 self.userDefaults.set(bio, forKey: Constants.USER_DEFAULTS.bioKey)
             }
         }
-    }
-    
-    private func storeLoginResponse(response : NSDictionary, completed : FinishedStoringResponse ){
-        let access_token = "Bearer ".appending(response["access_token"] as! String)
-        let refresh_token = response["refresh_token"] as! String
-        let expires_in = response["expires_in"]
-        userDefaults.set( access_token , forKey: "access_token")
-        userDefaults.set( refresh_token, forKey: "refresh_token")
-        userDefaults.set( expires_in, forKey:"expires_in")
-        completed()
     }
     
     private func storeDefaultSearchFilter(){
