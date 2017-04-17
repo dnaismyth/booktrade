@@ -10,12 +10,14 @@ import UIKit
 
 class SearchViewController: UIViewController, UICollectionViewDelegate, UICollectionViewDataSource, UISearchBarDelegate, ProfileSelectDelegate, UIGestureRecognizerDelegate {
     
+    @IBOutlet var filterCollectionView: UICollectionView!
     @IBOutlet var searchCollectionView: UICollectionView!
     @IBOutlet var searchBar: UISearchBar!
     
     let userDefaults = Foundation.UserDefaults.standard
     var filterPrefs : [String : AnyObject] = [:]
     var bookContent : [[String : AnyObject]] = [[:]]
+    var filterContent : [String] = []
     var searchActivated : Bool = false
     var cellToPass : BookSearchCollectionViewCell?
     var pageNum : Int = 0
@@ -32,6 +34,8 @@ class SearchViewController: UIViewController, UICollectionViewDelegate, UICollec
         searchBar.delegate = self
         self.searchCollectionView.delegate = self
         self.searchCollectionView.dataSource = self
+        self.filterCollectionView.delegate = self
+        self.filterCollectionView.dataSource = self
         avatarGestureRecognizer.delegate = self
         ownerNameGestureRecognizer.delegate = self
         //self.hideKeyboardWhenTappedAround()
@@ -51,6 +55,12 @@ class SearchViewController: UIViewController, UICollectionViewDelegate, UICollec
     
     func updateFilterPreferences(notification: NSNotification){
         filterPrefs = userDefaults.dictionary(forKey: "filter_pref") as! [String : AnyObject]
+        for (filter, value) in filterPrefs {
+            if value as! Bool == true && filter != "distance" && !filterContent.contains(filter as String) {
+                self.filterContent.append(filter as String)
+            }
+        }
+        self.filterCollectionView.reloadData()
     }
     
     func searchBarTextDidBeginEditing(_ searchBar: UISearchBar) {
@@ -114,15 +124,38 @@ class SearchViewController: UIViewController, UICollectionViewDelegate, UICollec
     }
         
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return numCells
+        if(collectionView == searchCollectionView){
+            return numCells
+        } else if (collectionView == filterCollectionView) {
+            let cellCount = filterContent.count
+            return cellCount
+        } else {
+            return 0
+        }
     }
 
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        let cell = searchCollectionView.dequeueReusableCell(withReuseIdentifier: "searchBookCell", for: indexPath) as! BookSearchCollectionViewCell
-        cell.delegate = self
-        print(indexPath.item)
+        var cell : UICollectionViewCell?
+        if(collectionView == searchCollectionView){
+            cell = searchCollectionView.dequeueReusableCell(withReuseIdentifier: "searchBookCell", for: indexPath) as! BookSearchCollectionViewCell
+            self.setUpSearchCollectionViewCells(cell: cell as! BookSearchCollectionViewCell, indexPath: indexPath)
+
+        } else if (collectionView == filterCollectionView){
+            cell = filterCollectionView.dequeueReusableCell(withReuseIdentifier: "selectedFilterCell", for: indexPath) as! FilterSelectedCollectionViewCell
+            self.setUpSelectedFilterCells(cell: cell as! FilterSelectedCollectionViewCell, indexPath: indexPath)
+        }
+        
+        return cell!
+    }
+    
+    func setUpSelectedFilterCells(cell : FilterSelectedCollectionViewCell, indexPath : IndexPath){
+        cell.filterLabel.text = self.filterContent[indexPath.item]
+    }
+    
+    func setUpSearchCollectionViewCells(cell : BookSearchCollectionViewCell, indexPath : IndexPath){
         let book = self.bookContent[indexPath.item]
         let owner = book["owner"] as! [String : AnyObject]
+        cell.delegate = self
         cell.layer.cornerRadius = CGFloat(Constants.DESIGN.cellRadius)
         cell.bookId = book["id"] as? Int
         cell.author = book["author"] as? String
@@ -156,11 +189,21 @@ class SearchViewController: UIViewController, UICollectionViewDelegate, UICollec
         cell.ownerAvatar.layer.cornerRadius = (0.5 * cell.ownerAvatar.bounds.size.width)
         cell.ownerAvatar.clipsToBounds = true
         cell.addGestureRecognizer(avatarGestureRecognizer)
-        let bookCategory = book["category"] as? String
-        if bookCategory != nil && bookCategory == "FREE"{
+        print(book)
+        if let bookCategory = book["category"] as? [String]{
+            if bookCategory.contains("FREE"){
                 cell.priceLabel.createFreeLabel()
-        } else if let price = book["price"] as? String {
+            }
+            
+            if bookCategory.contains("TEXTBOOK"){
+                let textbookLabel = cell.textbookView.subviews.first as? UILabel
+                textbookLabel?.diagonalLabel()
+                cell.textbookView.isHidden = false
+            }
+        } else if let price = book["price"] as? Int {
             cell.priceLabel.text = "$".appending(String(describing: price)) // todo: in future update to use ISO codes
+        } else {
+            cell.priceLabel.text = "Price not provided."
         }
         
         // Check if the last row number is the same as the last current data element
@@ -168,8 +211,7 @@ class SearchViewController: UIViewController, UICollectionViewDelegate, UICollec
             self.pageNum = (pageNum + 1)
             self.getMostRecentBooks()
         }
-        
-        return cell
+
     }
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
@@ -280,8 +322,10 @@ class SearchViewController: UIViewController, UICollectionViewDelegate, UICollec
     }
     
     func shouldUseFilterPreferences() -> Bool {
-        let useFilterPrefs : Bool = filterPrefs[Constants.FILTER.useFilter] as! Bool
-        return useFilterPrefs
+        if(self.filterContent.count > 0){
+            return true
+        }
+        return false
     }
 
     // MARK: - Navigation

@@ -18,4 +18,12 @@ extension UILabel {
         self.textAlignment = NSTextAlignment.center
         self.textColor = UIColor.white
     }
+    
+    func diagonalLabel(){
+        let frame : CGRect = self.frame;
+        self.layer.anchorPoint = CGPoint( x: (frame.size.height / (frame.size.width * 0.5)), y: 0.5)
+        self.frame = frame;
+        let rotate : CGAffineTransform = CGAffineTransform(rotationAngle: CGFloat(CGFloat.pi/4))
+        self.transform = rotate
+    }
 }

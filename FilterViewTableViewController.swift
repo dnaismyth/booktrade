@@ -103,7 +103,6 @@ class FilterViewTableViewController: UITableViewController {
     @IBAction func saveFilter(_ sender: UIButton) {
         // Check if there are any changes from the default filter
         if(!NSDictionary(dictionary: Constants.FILTER.defaultFilter).isEqual(to: filterPrefs)){
-            filterPrefs[Constants.FILTER.useFilter] = true as AnyObject?    // if so, we will use this filter to perform future book queries
             userDefaults.set( filterPrefs, forKey: "filter_pref")   // update the user preferences
             NotificationCenter.default.post(name: NSNotification.Name(rawValue: Constants.NOTIFICATION.refreshFilter), object: nil) // notify to update filter prefs.
         }

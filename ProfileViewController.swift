@@ -356,6 +356,8 @@ class ProfileViewController: UIViewController, UICollectionViewDelegate, UIColle
             OperationQueue.main.addOperation {
                 print(dictionary)
                 popup.removeFromSuperview()
+                self.bookContent.remove(at: (popup.cellIndexPath?.item)!)
+                self.bookCollectionView.deleteItems(at: [popup.cellIndexPath!])
                 // show alert
             }
         }
