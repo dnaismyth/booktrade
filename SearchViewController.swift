@@ -8,7 +8,7 @@
 
 import UIKit
 
-class SearchViewController: UIViewController, UICollectionViewDelegate, UICollectionViewDataSource, UISearchBarDelegate, ProfileSelectDelegate, UIGestureRecognizerDelegate {
+class SearchViewController: UIViewController, UICollectionViewDelegate, UICollectionViewDataSource, UISearchBarDelegate, ProfileSelectDelegate, UIGestureRecognizerDelegate, FilterSelectCellDelegate {
     
     @IBOutlet var filterCollectionView: UICollectionView!
     @IBOutlet var searchCollectionView: UICollectionView!
@@ -56,7 +56,7 @@ class SearchViewController: UIViewController, UICollectionViewDelegate, UICollec
     func updateFilterPreferences(notification: NSNotification){
         filterPrefs = userDefaults.dictionary(forKey: "filter_pref") as! [String : AnyObject]
         for (filter, value) in filterPrefs {
-            if value as! Bool == true && filter != "distance" && !filterContent.contains(filter as String) {
+            if value as! Bool == true && filter != Constants.FILTER.distance && !filterContent.contains(filter as String) {
                 self.filterContent.append(filter as String)
             }
         }
@@ -149,6 +149,7 @@ class SearchViewController: UIViewController, UICollectionViewDelegate, UICollec
     }
     
     func setUpSelectedFilterCells(cell : FilterSelectedCollectionViewCell, indexPath : IndexPath){
+        cell.delegate = self
         cell.filterLabel.text = self.filterContent[indexPath.item]
     }
     
@@ -212,6 +213,21 @@ class SearchViewController: UIViewController, UICollectionViewDelegate, UICollec
             self.getMostRecentBooks()
         }
 
+    }
+    
+    func removeFilterSelected(cell: FilterSelectedCollectionViewCell) {
+        let indexPath : IndexPath = self.filterCollectionView.indexPath(for: cell)!
+        if(self.filterContent.count > 0){
+            self.filterContent.remove(at: indexPath.item)
+        }
+        self.filterCollectionView.deleteItems(at: [indexPath])
+        self.updateFilterPrefsOnRemoval(filterKey: cell.filterLabel.text!)
+    }
+    
+    func updateFilterPrefsOnRemoval(filterKey : String){
+        if(filterKey != Constants.FILTER.distance){
+            self.filterPrefs[filterKey] = false as AnyObject
+        }
     }
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
