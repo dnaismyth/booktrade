@@ -28,7 +28,7 @@ class TextbookUIView : UIView {
         context.addLine(to: CGPoint(x: rect.minX, y: rect.minY))
         context.closePath()
         
-        context.setFillColor(UIColor(red:0.82, green:0.30, blue:0.30, alpha:0.7).cgColor)
+        context.setFillColor(UIColor.red.cgColor)
         context.fillPath()
     }
 }

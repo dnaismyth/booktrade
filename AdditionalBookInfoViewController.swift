@@ -77,13 +77,11 @@ class AdditionalBookInfoViewController: UIViewController, UIPickerViewDelegate, 
         }
     }
     
-
-    
     // MARK: - Navigation
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         if(segue.identifier == "backToBookPostingSegue"){
-            let postController = segue.destination as! BookPostingViewController
+            let postController = segue.destination as! BookPostingTableViewController
             postController.additionalInfo = self.informationTextView.text
             if(selectedCondition != nil){
                 postController.selectedCondition = self.getSelectedCondition(condition: self.selectedCondition!)

@@ -117,8 +117,9 @@ class ChangeAvatarViewController: UIViewController, UIImagePickerControllerDeleg
             imageSelected = true
             dismiss(animated: true, completion: nil)
             print(imageView)
-            let s3KeyPrefix : String = userDefaults.string(forKey: Constants.USER_DEFAULTS.userIdKey)!.appending("/AVATAR_")
-            S3Service().uploadImageFromLibrary(selectedImageUrl: selectedImageUrl, image: imageView.image!, keyPrefix: s3KeyPrefix) { (avatar) in
+            let s3KeyPrefix : String = userDefaults.string(forKey: Constants.USER_DEFAULTS.userIdKey)!.appending("/AVATAR")
+            let key : String = s3KeyPrefix.appending("_").appending(UUID().uuidString)
+            S3Service().uploadImageFromLibrary(selectedImageUrl: selectedImageUrl, image: imageView.image!, key : key) { (avatar) in
                 OperationQueue.main.addOperation {
                     UserService().updateUserAvatar(avatar: avatar)
                 }
@@ -133,8 +134,9 @@ class ChangeAvatarViewController: UIViewController, UIImagePickerControllerDeleg
             imageSelected = true
             dismiss(animated: true, completion: nil)
             print(imageView)
-            let s3KeyPrefix : String = userDefaults.string(forKey: Constants.USER_DEFAULTS.userIdKey)!.appending("/AVATAR_")
-            S3Service().uploadImageFromCamera(fileName: fileName, image: imageView.image!, keyPrefix: s3KeyPrefix) { (avatar) in
+            let s3KeyPrefix : String = userDefaults.string(forKey: Constants.USER_DEFAULTS.userIdKey)!.appending("/AVATAR")
+            let key : String = s3KeyPrefix.appending("_").appending(UUID().uuidString)
+            S3Service().uploadImageFromCamera(fileName: fileName, image: imageView.image!, key: key) { (avatar) in
                 OperationQueue.main.addOperation {
                     UserService().updateUserAvatar(avatar: avatar)
                 }

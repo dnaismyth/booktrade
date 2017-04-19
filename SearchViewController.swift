@@ -58,6 +58,8 @@ class SearchViewController: UIViewController, UICollectionViewDelegate, UICollec
         for (filter, value) in filterPrefs {
             if value as! Bool == true && filter != Constants.FILTER.distance && !filterContent.contains(filter as String) {
                 self.filterContent.append(filter as String)
+            } else if (filter == Constants.FILTER.distance && value as! Int > 0){
+                self.filterContent.append(filter as String)
             }
         }
         self.filterCollectionView.reloadData()
@@ -190,7 +192,6 @@ class SearchViewController: UIViewController, UICollectionViewDelegate, UICollec
         cell.ownerAvatar.layer.cornerRadius = (0.5 * cell.ownerAvatar.bounds.size.width)
         cell.ownerAvatar.clipsToBounds = true
         cell.addGestureRecognizer(avatarGestureRecognizer)
-        print(book)
         if let bookCategory = book["category"] as? [String]{
             if bookCategory.contains("FREE"){
                 cell.priceLabel.createFreeLabel()
@@ -227,6 +228,8 @@ class SearchViewController: UIViewController, UICollectionViewDelegate, UICollec
     func updateFilterPrefsOnRemoval(filterKey : String){
         if(filterKey != Constants.FILTER.distance){
             self.filterPrefs[filterKey] = false as AnyObject
+        } else if (filterKey == Constants.FILTER.distance){
+            self.filterPrefs[filterKey] = 0 as AnyObject
         }
     }
     

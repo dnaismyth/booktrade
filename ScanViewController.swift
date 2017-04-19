@@ -35,6 +35,7 @@ class ScanViewController: UIViewController, AVCaptureMetadataOutputObjectsDelega
     var selectedImageUrl: NSURL!
     var imageSelected = false
     var isFromCamera: Bool = false
+    var isFromLibrary : Bool = false
     var userCanEdit : Bool = false
     var saveChangesSelected : Bool = true
     
@@ -196,13 +197,21 @@ class ScanViewController: UIViewController, AVCaptureMetadataOutputObjectsDelega
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         if segue.identifier == "bookPostingSegue" {
             print("Continue to posting.")
-            let bookPostingView = segue.destination as! BookPostingViewController
-            if(!isFromCamera){
-                bookPostingView.titleHolder = self.bookConfirmationPopup.titleTextField.text
-                bookPostingView.authorHolder = self.bookConfirmationPopup.authorTextField.text
+            let bookPostingView = segue.destination as! BookPostingTableViewController
+            if(!isFromCamera ){
                 bookPostingView.tmbImageUrl = self.smallImageUrl // thumbnail image
-
             }
+            
+            bookPostingView.titleHolder = self.bookConfirmationPopup.titleTextField.text
+            bookPostingView.authorHolder = self.bookConfirmationPopup.authorTextField.text
+            
+            bookPostingView.isFromLibrary = self.isFromLibrary
+            bookPostingView.isFromCamera = self.isFromCamera
+            
+            if(isFromLibrary){
+                bookPostingView.selectedImageUrl = self.selectedImageUrl
+            }
+            
             bookPostingView.mainImageUrl = self.largeImageUrl   // main, larger image
             bookPostingView.dataSource = self.bookSource!
             if(self.capturedISBN != nil){
@@ -224,7 +233,7 @@ class ScanViewController: UIViewController, AVCaptureMetadataOutputObjectsDelega
     
     func showBookConfirmationPopup(){
         self.bookConfirmationPopup = BookConfirmationPopupView(frame: CGRect(x: 10, y: 100, width: 300, height: 375))
-        if(!isFromCamera){
+        if(!isFromCamera && !isFromLibrary){
             self.bookConfirmationPopup.authorTextField.text = self.author
             self.bookConfirmationPopup.titleTextField.text = self.bookTitle
             self.toggleEditingTextFields(popup: bookConfirmationPopup)
@@ -239,56 +248,22 @@ class ScanViewController: UIViewController, AVCaptureMetadataOutputObjectsDelega
     }
     
     func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [String : Any]) {
-        var image : UIImage?
         if(picker.sourceType == .camera){
             // If coming from camera
             let tempFileUrl : String = "camera"
-            image = info[UIImagePickerControllerOriginalImage] as? UIImage
-            self.s3UploadFromCamera(image: image, fileName: tempFileUrl)
+            self.coverImage = info[UIImagePickerControllerOriginalImage] as? UIImage
+            //self.s3UploadFromCamera(image: image, fileName: tempFileUrl)
         }  else {
             // If coming from album
             selectedImageUrl = info[UIImagePickerControllerReferenceURL] as! NSURL
-            image = info[UIImagePickerControllerOriginalImage] as? UIImage
-            self.s3UploadFromLibrary(image: image, selectedImageUrl : selectedImageUrl)
+            self.coverImage = info[UIImagePickerControllerOriginalImage] as? UIImage
+            //self.s3UploadFromLibrary(image: image, selectedImageUrl : selectedImageUrl)
         }
+        
+        self.bookSource = Constants.BOOKSOURCE.book_trader
+        dismiss(animated: true, completion: nil)
+        self.showBookConfirmationPopup()
     }
-    
-    func s3UploadFromLibrary(image : UIImage?, selectedImageUrl : NSURL){
-        if(image != nil){
-            imageView.image = image?.resized(withPercentage: 0.1)
-            imageView.contentMode = UIViewContentMode.scaleAspectFill
-            imageSelected = true
-            dismiss(animated: true, completion: nil)
-            print(imageView)
-            let s3KeyPrefix : String = userDefaults.string(forKey: Constants.USER_DEFAULTS.userIdKey)!.appending("/BOOK_")
-            S3Service().uploadImageFromLibrary(selectedImageUrl: selectedImageUrl, image: imageView.image!, keyPrefix: s3KeyPrefix) { (avatar) in
-                OperationQueue.main.addOperation {
-                    self.bookSource = Constants.BOOKSOURCE.book_trader
-                    self.largeImageUrl = avatar
-                    self.setBookImage(imageUrl: avatar)
-                }
-            }
-        }
-    }
-    
-    func s3UploadFromCamera(image: UIImage?, fileName : String){
-        if(image != nil){
-            imageView.image = image?.resized(withPercentage: 0.1)
-            imageView.contentMode = UIViewContentMode.scaleAspectFill
-            imageSelected = true
-            dismiss(animated: true, completion: nil)
-            print(imageView)
-            let s3KeyPrefix : String = userDefaults.string(forKey: Constants.USER_DEFAULTS.userIdKey)!.appending("/BOOK_")
-            S3Service().uploadImageFromCamera(fileName: fileName, image: imageView.image!, keyPrefix: s3KeyPrefix) { (avatar) in
-                OperationQueue.main.addOperation {
-                    self.largeImageUrl = avatar
-                    self.bookSource = Constants.BOOKSOURCE.book_trader
-                    self.setBookImage(imageUrl: avatar)
-                }
-            }
-        }
-    }
-    
     
     func useCameraIsSelected(popup: ScanOrCameraPopupView) {
         scanOrCameraPopup.removeFromSuperview()
@@ -315,7 +290,7 @@ class ScanViewController: UIViewController, AVCaptureMetadataOutputObjectsDelega
             imagePicker!.sourceType = .savedPhotosAlbum;
             imagePicker!.allowsEditing = false
             self.present(imagePicker!, animated: true, completion: nil)
-            self.isFromCamera = true
+            self.isFromLibrary = true
         } else {
             print("No camera library")
         }
@@ -325,6 +300,7 @@ class ScanViewController: UIViewController, AVCaptureMetadataOutputObjectsDelega
     func scanBarcodeIsSelected(popup: ScanOrCameraPopupView) {
         print("Scan barcode is selected!")
         self.isFromCamera = false
+        self.isFromLibrary = false
         self.setupScanner()
         self.scanOrCameraPopup.removeFromSuperview()
     }

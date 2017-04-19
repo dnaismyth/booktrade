@@ -25,7 +25,7 @@ class S3Service {
     }
     
    
-    func uploadImageFromLibrary(selectedImageUrl : NSURL?, image : UIImage, keyPrefix: String, completed : @escaping FinishedUploading)
+    func uploadImageFromLibrary(selectedImageUrl : NSURL?, image : UIImage, key: String, completed : @escaping FinishedUploading)
     {
         var localFileName:String?
         print(selectedImageUrl!)
@@ -46,7 +46,7 @@ class S3Service {
         
         let uploadRequest = AWSS3TransferManagerUploadRequest()
         uploadRequest?.body = self.generateImageUrl(fileName: remoteName, image: image) as URL
-        uploadRequest?.key = keyPrefix.appending(localFileName!).appending("_").appending(UUID().uuidString)
+        uploadRequest?.key = key
         print("Key is: \(uploadRequest?.key!)")
 
         uploadRequest?.bucket = Constants.S3.bucket
@@ -80,11 +80,11 @@ class S3Service {
         }
     }
     
-    func uploadImageFromCamera(fileName : String, image : UIImage, keyPrefix : String, completed : @escaping FinishedUploading){
+    func uploadImageFromCamera(fileName : String, image : UIImage, key : String, completed : @escaping FinishedUploading){
         
         let uploadRequest = AWSS3TransferManagerUploadRequest()
         uploadRequest?.body = self.generateImageUrl(fileName: fileName, image: image) as URL
-        uploadRequest?.key = keyPrefix.appending(fileName).appending("_").appending(UUID().uuidString)
+        uploadRequest?.key = key
         print("Key is: \(uploadRequest?.key!)")
         
         uploadRequest?.bucket = Constants.S3.bucket

@@ -171,12 +171,29 @@ class ProfileViewController: UIViewController, UICollectionViewDelegate, UIColle
         cell.ownerName = owner["name"] as? String
         cell.ownerAvatar = owner["avatar"] as? String
         cell.ownerId = owner["id"] as? Int
+        cell.uploadedLabel.text = (book["uploadedTime"] as? String)! + " ago. "
         if let location : [String : AnyObject] = owner["location"] as? [String : AnyObject]{
             cell.location = location["city"] as? String
         }
         
         if let imageUrl : String = book ["imageUrl"] as? String {
             self.setBookImage(imageUrl: imageUrl, cell: cell)
+        }
+        
+        if let bookCategory = book["category"] as? [String]{
+            if bookCategory.contains("FREE"){
+                cell.priceLabel.createFreeLabel()
+            }
+            
+            if bookCategory.contains("TEXTBOOK"){
+                let textbookLabel = cell.textbookView.subviews.first as? UILabel
+                textbookLabel?.diagonalLabel()
+                cell.textbookView.isHidden = false
+            }
+        } else if let price = book["price"] as? Int {
+            cell.priceLabel.text = "$".appending(String(describing: price)) // todo: in future update to use ISO codes
+        } else {
+            cell.priceLabel.text = "Price not provided."
         }
         
         // Check if the last row number is the same as the last current data element
@@ -355,7 +372,8 @@ class ProfileViewController: UIViewController, UICollectionViewDelegate, UIColle
         BookService().deleteBook(token: accessToken, bookId: bookId) { (dictionary) in
             OperationQueue.main.addOperation {
                 print(dictionary)
-                popup.removeFromSuperview()
+                self.bookPopupIsDismissed(popup: popup)
+                self.numCells = self.numCells - 1
                 self.bookContent.remove(at: (popup.cellIndexPath?.item)!)
                 self.bookCollectionView.deleteItems(at: [popup.cellIndexPath!])
                 // show alert
@@ -370,7 +388,8 @@ class ProfileViewController: UIViewController, UICollectionViewDelegate, UIColle
         BookService().updateBookStatus(token: accessToken, data: data) { (dictionary) in
             OperationQueue.main.addOperation {
                 print(dictionary)
-                popup.removeFromSuperview()
+                self.bookPopupIsDismissed(popup: popup)
+                self.numCells = self.numCells - 1
                 self.bookContent.remove(at: (popup.cellIndexPath?.item)!)
                 self.bookCollectionView.deleteItems(at: [popup.cellIndexPath!])
                 // show alert

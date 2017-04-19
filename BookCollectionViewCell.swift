@@ -15,6 +15,7 @@ class BookCollectionViewCell: UICollectionViewCell {
     @IBOutlet var bookTitleLabel: UILabel!
     @IBOutlet var priceLabel: UILabel!
     @IBOutlet var uploadedLabel: UILabel!
+    @IBOutlet var textbookView: TextbookUIView!
     
     // Book Author
     var author : String?
@@ -48,15 +49,15 @@ class BookCollectionViewCell: UICollectionViewCell {
     
     required init(coder aDecoder: NSCoder) {
         super.init(coder: aDecoder)!
-        self.layer.shadowOpacity = 0.25
-        self.layer.shadowRadius = 0.6
-        self.layer.shadowOffset = CGSize(width: 0, height: 1)
-        self.layer.shadowColor = UIColor.black.cgColor
         self.layer.masksToBounds = false
     }
     
     override func awakeFromNib() {
         super.awakeFromNib()
+        self.textbookView.isHidden = true
+        self.coverImage.dropShadow()
+        self.coverImage.cornerRadius()
+        self.textbookView.roundCorners([.topRight], radius: CGFloat(Constants.DESIGN.cellRadius))
     }
     
     
