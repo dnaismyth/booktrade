@@ -58,11 +58,13 @@ class SearchViewController: UIViewController, UICollectionViewDelegate, UICollec
 //    }
     
     func updateFilterPreferences(notification: NSNotification){
+        self.filterContent = []
         filterPrefs = userDefaults.dictionary(forKey: Constants.USER_DEFAULTS.filterPrefs) as! [String : AnyObject]
+        print(filterPrefs)
         for (filter, value) in filterPrefs {
             if value as! Bool == true && filter != Constants.FILTER.distance && !filterContent.contains(filter as String) {
                 self.filterContent.append(filter as String)
-            } else if (filter == Constants.FILTER.distance && value as! Int > 0){
+            } else if (filter == Constants.FILTER.distance && value as! Int > 0 && !filterContent.contains(filter as String)){
                 self.filterContent.append(filter as String)
             }
         }
@@ -238,6 +240,8 @@ class SearchViewController: UIViewController, UICollectionViewDelegate, UICollec
         } else if (filterKey == Constants.FILTER.distance){
             self.filterPrefs[filterKey] = 0 as AnyObject
         }
+        
+        userDefaults.set( filterPrefs, forKey: Constants.USER_DEFAULTS.filterPrefs)   // update the user preferences
     }
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {

@@ -22,11 +22,14 @@ class FilterViewTableViewController: UITableViewController {
     @IBOutlet var fictionFilter: UIButton!
     @IBOutlet var nonFictionFilter: UIButton!
     @IBOutlet var childrensFilter: UIButton!
+    @IBOutlet var distanceFilter: UISlider!
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        self.distanceFilter.isContinuous = false
         filterPrefs = userDefaults.dictionary(forKey: "filter_pref") as! [String : AnyObject]
         print(filterPrefs)
+        self.setButtonStates()
         filterTableView.delegate = self
         filterTableView.dataSource = self
         self.navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Reset", style: .plain, target: self, action: #selector(self.resetFilter))
@@ -43,6 +46,38 @@ class FilterViewTableViewController: UITableViewController {
     @objc private func resetFilter(){
         filterPrefs = Constants.FILTER.defaultFilter
         userDefaults.set( filterPrefs, forKey: "filter_pref")   // set preferences back to default
+    }
+    
+    private func setButtonStates(){
+        for(key, value) in filterPrefs {
+            if(key != Constants.FILTER.distance && (value as! Bool == true)){
+                switch(key){
+                case Constants.FILTER.children:
+                    self.setActiveButtonState(button: self.childrensFilter)
+                case Constants.FILTER.fiction:
+                    self.setActiveButtonState(button: self.fictionFilter)
+                case Constants.FILTER.nonFiction:
+                    self.setActiveButtonState(button: self.nonFictionFilter)
+                case Constants.FILTER.price:
+                    self.setActiveButtonState(button: self.priceFilter)
+                case Constants.FILTER.recent:
+                    self.setActiveButtonState(button: self.recentlyAddedFilter)
+                case Constants.FILTER.free:
+                    self.setActiveButtonState(button: self.freeFilter)
+                case Constants.FILTER.textbook:
+                    self.setActiveButtonState(button: self.textbookFilter)
+                default:
+                    break
+                }
+            } else if (key == Constants.FILTER.distance){
+                self.distanceFilter.setValue(value as! Float, animated: true)
+            }
+        }
+    }
+    
+    private func setActiveButtonState(button : UIButton){
+        button.setBackgroundColor(color: UIColor.gray, forState: UIControlState.selected)
+        button.isSelected = true
     }
 
     @IBAction func textbookButton(_ sender: UIButton) {
@@ -81,7 +116,12 @@ class FilterViewTableViewController: UITableViewController {
     }
     
     @IBAction func distanceSlider(_ sender: UISlider) {
-        
+        print("Sender value: \(sender.value)")
+        let distance : Float = Utilities.kilometersToMiles(km: sender.value)
+        print("Calculated distance in miles: \(distance)")
+        if(distance != 0){
+            filterPrefs[Constants.FILTER.distance] = distance as AnyObject?
+        }
     }
     @IBAction func nonFictionButtonAction(_ sender: UIButton) {
         if(!sender.isSelected){

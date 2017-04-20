@@ -10,10 +10,16 @@ import Foundation
 
 class Utilities{
     
+    static let milesInKilometer : Float = 0.621371 // (miles in one kilometer)
+    
     static func buildLocationLabel(location : [String : AnyObject]) -> String{
         var label : String = location["city"]!.appending(", ")
         label = label.appending(location["province"] as! String)
         return label
+    }
+    
+    static func kilometersToMiles(km : Float) -> Float {
+        return milesInKilometer * km
     }
     
 }
