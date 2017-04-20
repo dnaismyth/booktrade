@@ -19,6 +19,9 @@ class FilterViewTableViewController: UITableViewController {
     @IBOutlet var priceFilter: UIButton!
     @IBOutlet var recentlyAddedFilter: UIButton!
     @IBOutlet var filterTableView: UITableView!
+    @IBOutlet var fictionFilter: UIButton!
+    @IBOutlet var nonFictionFilter: UIButton!
+    @IBOutlet var childrensFilter: UIButton!
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -65,8 +68,43 @@ class FilterViewTableViewController: UITableViewController {
             filterPrefs[Constants.FILTER.free] = false as AnyObject?
         }
     }
+    @IBAction func fictionButtonAction(_ sender: UIButton) {
+        if(!sender.isSelected){
+            sender.setBackgroundColor(color: UIColor.gray, forState: UIControlState.selected)
+            sender.isSelected = true
+            filterPrefs[Constants.FILTER.fiction] = true as AnyObject?
+        } else {
+            sender.setBackgroundColor(color: UIColor.white, forState: UIControlState.normal)
+            sender.isSelected = false
+            filterPrefs[Constants.FILTER.fiction] = false as AnyObject?
+        }
+    }
     
     @IBAction func distanceSlider(_ sender: UISlider) {
+        
+    }
+    @IBAction func nonFictionButtonAction(_ sender: UIButton) {
+        if(!sender.isSelected){
+            sender.setBackgroundColor(color: UIColor.gray, forState: UIControlState.selected)
+            sender.isSelected = true
+            filterPrefs[Constants.FILTER.nonFiction] = true as AnyObject?
+        } else {
+            sender.setBackgroundColor(color: UIColor.white, forState: UIControlState.normal)
+            sender.isSelected = false
+            filterPrefs[Constants.FILTER.nonFiction] = false as AnyObject?
+        }
+    }
+    
+    @IBAction func childrensButtonAction(_ sender: UIButton) {
+        if(!sender.isSelected){
+            sender.setBackgroundColor(color: UIColor.gray, forState: UIControlState.selected)
+            sender.isSelected = true
+            filterPrefs[Constants.FILTER.children] = true as AnyObject?
+        } else {
+            sender.setBackgroundColor(color: UIColor.white, forState: UIControlState.normal)
+            sender.isSelected = false
+            filterPrefs[Constants.FILTER.children] = false as AnyObject?
+        }
     }
     
     @IBAction func priceButton(_ sender: UIButton) {
@@ -103,7 +141,7 @@ class FilterViewTableViewController: UITableViewController {
     @IBAction func saveFilter(_ sender: UIButton) {
         // Check if there are any changes from the default filter
         if(!NSDictionary(dictionary: Constants.FILTER.defaultFilter).isEqual(to: filterPrefs)){
-            userDefaults.set( filterPrefs, forKey: "filter_pref")   // update the user preferences
+            userDefaults.set( filterPrefs, forKey: Constants.USER_DEFAULTS.filterPrefs)   // update the user preferences
             NotificationCenter.default.post(name: NSNotification.Name(rawValue: Constants.NOTIFICATION.refreshFilter), object: nil) // notify to update filter prefs.
         }
     }

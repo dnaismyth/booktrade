@@ -158,6 +158,7 @@ class ProfileViewController: UIViewController, UICollectionViewDelegate, UIColle
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = bookCollectionView.dequeueReusableCell(withReuseIdentifier: "bookProfileCell", for: indexPath) as! BookCollectionViewCell
+        cell.textbookView.isHidden = true
         let book = self.bookContent[indexPath.item]
         let owner = book["owner"] as! [String : AnyObject]
         cell.layer.cornerRadius = CGFloat(Constants.DESIGN.cellRadius)
@@ -188,6 +189,7 @@ class ProfileViewController: UIViewController, UICollectionViewDelegate, UIColle
             if bookCategory.contains("TEXTBOOK"){
                 let textbookLabel = cell.textbookView.subviews.first as? UILabel
                 textbookLabel?.diagonalLabel()
+                cell.textbookView.bringSubview(toFront: textbookLabel!)
                 cell.textbookView.isHidden = false
             }
         } else if let price = book["price"] as? Int {

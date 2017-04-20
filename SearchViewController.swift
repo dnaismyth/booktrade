@@ -39,9 +39,9 @@ class SearchViewController: UIViewController, UICollectionViewDelegate, UICollec
         avatarGestureRecognizer.delegate = self
         ownerNameGestureRecognizer.delegate = self
         //self.hideKeyboardWhenTappedAround()
-        filterPrefs = userDefaults.dictionary(forKey: "filter_pref") as! [String : AnyObject]
+        filterPrefs = userDefaults.dictionary(forKey: Constants.USER_DEFAULTS.filterPrefs) as! [String : AnyObject]
         NotificationCenter.default.addObserver(self, selector: #selector(self.updateFilterPreferences(notification:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.refreshFilter), object: nil)
-        // Do any additional setup after loading the view.s
+        //NotificationCenter.default.addObserver(self, selector: #selector(self.refreshTableData(notification:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.refreshSearchTableData), object: nil)
     }
     
     override func didReceiveMemoryWarning() {
@@ -53,8 +53,12 @@ class SearchViewController: UIViewController, UICollectionViewDelegate, UICollec
         return true
     }
     
+//    func refreshTableData(notification : NSNotification){
+//        self.getMostRecentBooks()
+//    }
+    
     func updateFilterPreferences(notification: NSNotification){
-        filterPrefs = userDefaults.dictionary(forKey: "filter_pref") as! [String : AnyObject]
+        filterPrefs = userDefaults.dictionary(forKey: Constants.USER_DEFAULTS.filterPrefs) as! [String : AnyObject]
         for (filter, value) in filterPrefs {
             if value as! Bool == true && filter != Constants.FILTER.distance && !filterContent.contains(filter as String) {
                 self.filterContent.append(filter as String)
@@ -82,6 +86,8 @@ class SearchViewController: UIViewController, UICollectionViewDelegate, UICollec
     func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
         let searchValue : String = searchBar.text!
         let useFilter : Bool = self.shouldUseFilterPreferences()
+        self.bookContent = []
+        self.resetPaginationValues()
         if(!useFilter){
             self.searchBooksWithoutFilter(searchValue: searchValue)
         } else {
@@ -156,6 +162,7 @@ class SearchViewController: UIViewController, UICollectionViewDelegate, UICollec
     }
     
     func setUpSearchCollectionViewCells(cell : BookSearchCollectionViewCell, indexPath : IndexPath){
+        cell.textbookView.isHidden = true
         let book = self.bookContent[indexPath.item]
         let owner = book["owner"] as! [String : AnyObject]
         cell.delegate = self
@@ -196,12 +203,12 @@ class SearchViewController: UIViewController, UICollectionViewDelegate, UICollec
             if bookCategory.contains("FREE"){
                 cell.priceLabel.createFreeLabel()
             }
-            
             if bookCategory.contains("TEXTBOOK"){
-                let textbookLabel = cell.textbookView.subviews.first as? UILabel
-                textbookLabel?.diagonalLabel()
                 cell.textbookView.isHidden = false
-            }
+                let textbookLabel = cell.textbookView.subviews.first as? UILabel
+                textbookLabel!.diagonalLabel()
+                textbookLabel?.isHidden = false
+            } 
         } else if let price = book["price"] as? Int {
             cell.priceLabel.text = "$".appending(String(describing: price)) // todo: in future update to use ISO codes
         } else {
@@ -272,15 +279,24 @@ class SearchViewController: UIViewController, UICollectionViewDelegate, UICollec
         let token : String = userDefaults.string(forKey: "access_token")!
         BookService().searchBooks(token: token, value: searchValue, page: String(self.pageNum), size: Constants.SCROLL.pageSize) { (dictionary) in
             OperationQueue.main.addOperation {
-                self.numBooksInResults = dictionary.value(forKey: "totalElements") as! Int?
-                self.numCells = self.numCells + (dictionary.value(forKey: "numberOfElements") as! Int)
-                if(self.bookContent.count <= 1){
-                    self.bookContent = dictionary.value(forKey: "content") as! [[String : AnyObject]]
-                } else {
-                    let additionalContent : [[String : AnyObject]] = dictionary.value(forKey: "content") as! [[String : AnyObject]]
-                    for content in additionalContent {
-                        self.bookContent.append(content)
+                if let numBooks = dictionary.value(forKey: "totalElements") as? Int {
+                    self.numBooksInResults = numBooks
+                    if(self.numBooksInResults! > 0){
+                        //self.numCells = self.numCells + (dictionary.value(forKey: "numberOfElements") as! Int)
+                        if(self.bookContent.count <= 1){
+                            self.bookContent = dictionary.value(forKey: "content") as! [[String : AnyObject]]
+                        } else {
+                            let additionalContent : [[String : AnyObject]] = dictionary.value(forKey: "content") as! [[String : AnyObject]]
+                            for content in additionalContent {
+                                self.bookContent.append(content)
+                            }
+                        }
+                        
+                        self.numCells = self.bookContent.count
+                        print(self.numCells)
                     }
+                } else {
+                    //TODO: show an empty screen as no results have been found
                 }
                 
                 self.flagReachedEndOfBookResultContent()
@@ -297,15 +313,23 @@ class SearchViewController: UIViewController, UICollectionViewDelegate, UICollec
         let token : String = userDefaults.string(forKey: "access_token")!
         BookService().filterSearchBooks(token: token, filter: filter, page: String(self.pageNum), size: Constants.SCROLL.pageSize) { (dictionary) in
             OperationQueue.main.addOperation {
-                self.numBooksInResults = dictionary.value(forKey: "totalElements") as! Int?
-                self.numCells = self.numCells + (dictionary.value(forKey: "numberOfElements") as! Int)
-                if(self.bookContent.count <= 1){
-                    self.bookContent = dictionary.value(forKey: "content") as! [[String : AnyObject]]
-                } else {
-                    let additionalContent : [[String : AnyObject]] = dictionary.value(forKey: "content") as! [[String : AnyObject]]
-                    for content in additionalContent {
-                        self.bookContent.append(content)
+                if let numBooks = dictionary.value(forKey: "totalElements") as? Int {
+                    self.numBooksInResults = numBooks
+                    if(self.numBooksInResults! > 0){
+                        //self.numCells = self.numCells + (dictionary.value(forKey: "numberOfElements") as! Int)
+                        if(self.bookContent.count <= 1){
+                            self.bookContent = dictionary.value(forKey: "content") as! [[String : AnyObject]]
+                        } else {
+                            let additionalContent : [[String : AnyObject]] = dictionary.value(forKey: "content") as! [[String : AnyObject]]
+                            for content in additionalContent {
+                                self.bookContent.append(content)
+                            }
+                        }
+                        self.numCells = self.bookContent.count
+                        print(self.numCells)
                     }
+                } else {
+                    //TODO: Show an empty screen as no results have been found
                 }
                 
                 self.flagReachedEndOfBookResultContent()
@@ -322,7 +346,7 @@ class SearchViewController: UIViewController, UICollectionViewDelegate, UICollec
         let token : String = userDefaults.string(forKey: "access_token")!
         BookService().getMostRecentBooks(token: token, page: String(self.pageNum), size: Constants.SCROLL.pageSize) { (dictionary) in
             OperationQueue.main.addOperation {
-                self.numCells = self.numCells + (dictionary.value(forKey: "numberOfElements") as! Int)
+                //self.numCells = self.numCells + (dictionary.value(forKey: "numberOfElements") as! Int)
                 self.numBooksInResults = dictionary.value(forKey: "totalElements") as! Int?
                 print("Current book content count is: \(self.bookContent.count)")
                 if(self.bookContent.count <= 1){    // might have to change this back to <= 1
@@ -333,6 +357,8 @@ class SearchViewController: UIViewController, UICollectionViewDelegate, UICollec
                         self.bookContent.append(content)
                     }
                 }
+                self.numCells = self.bookContent.count
+                print(self.numCells)
                 print("After book content count is: \(self.bookContent.count)")
                 self.flagReachedEndOfBookResultContent()
                 self.searchCollectionView.reloadData()
@@ -396,6 +422,12 @@ class SearchViewController: UIViewController, UICollectionViewDelegate, UICollec
         print("HI!")
     }
     
+    func resetPaginationValues(){
+        self.pageNum = 0
+        self.numCells = 0
+        self.numBooksInResults = 0
+        self.reachedEndOfBookResults = false
+    }
     
     private func setPopupInfo (bookPopupInfo : BookPopupViewController, cell : BookSearchCollectionViewCell){
         bookPopupInfo.authorToPass = cell.author

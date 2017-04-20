@@ -45,9 +45,8 @@ class BookPostingTableViewController: UITableViewController {
         super.viewDidLoad()
         self.categoryTableView.delegate = self
         self.categoryTableView.dataSource = self
-        print(categoryTableView.numberOfSections)
         // Uncomment the following line to preserve selection between presentations
-         self.clearsSelectionOnViewWillAppear = false
+        // self.clearsSelectionOnViewWillAppear = false
 
         // Uncomment the following line to display an Edit button in the navigation bar for this view controller.
         // self.navigationItem.rightBarButtonItem = self.editButtonItem()
@@ -85,6 +84,9 @@ class BookPostingTableViewController: UITableViewController {
             self.indexPathOfPreviouslySelectedRow = indexPath
             if(cell?.restorationIdentifier == "FreeBook"){
                 cell?.backgroundColor = Constants.COLOR.freeGreen
+                self.freeIsSelected = true
+            } else {
+                self.freeIsSelected = false
             }
             categoryTableView.cellForRow(at: indexPath)?.accessoryType = UITableViewCellAccessoryType.checkmark
         default:
@@ -170,6 +172,9 @@ class BookPostingTableViewController: UITableViewController {
         bookDictionary["imageUrl"] = self.mainImageUrl as AnyObject?
         if(selectedCondition != nil){
             bookDictionary["condition"] = selectedCondition! as AnyObject?
+        }
+        if(freeIsSelected){
+            self.categories.append("FREE")
         }
         bookDictionary["category"] = self.categories as AnyObject?
         if let info : AnyObject? = additionalInfo as AnyObject?? {
