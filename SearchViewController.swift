@@ -14,7 +14,13 @@ class SearchViewController: UIViewController, UICollectionViewDelegate, UICollec
     @IBOutlet var searchCollectionView: UICollectionView!
     @IBOutlet var searchBar: UISearchBar!
     
+    // User defaults
     let userDefaults = Foundation.UserDefaults.standard
+    
+    // Alert loading properties
+    let alert : UIAlertController = UIAlertController(title: nil, message: "Fetching books...", preferredStyle: UIAlertControllerStyle.actionSheet)
+    let loadingIndicator = UIActivityIndicatorView(frame: CGRect(x: 10, y: 5, width: 50, height: 50))
+
     var filterPrefs : [String : AnyObject] = [:]
     var bookContent : [[String : AnyObject]] = [[:]]
     var filterContent : [String] = []
@@ -31,7 +37,11 @@ class SearchViewController: UIViewController, UICollectionViewDelegate, UICollec
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        searchBar.delegate = self
+        loadingIndicator.hidesWhenStopped = true
+        loadingIndicator.activityIndicatorViewStyle = UIActivityIndicatorViewStyle.white
+        loadingIndicator.startAnimating()
+        alert.view.addSubview(loadingIndicator)
+        self.searchBar.delegate = self
         self.searchCollectionView.delegate = self
         self.searchCollectionView.dataSource = self
         self.filterCollectionView.delegate = self
@@ -80,6 +90,7 @@ class SearchViewController: UIViewController, UICollectionViewDelegate, UICollec
     func searchBarCancelButtonClicked(_ searchBar: UISearchBar) {
         print("Cancelled")
         if(searchActivated){
+            self.resetPaginationValues()
             self.getMostRecentBooks()   // only reload original result set if search had previously been activated
             searchActivated = false
         }
@@ -280,6 +291,7 @@ class SearchViewController: UIViewController, UICollectionViewDelegate, UICollec
         guard !self.reachedEndOfBookResults else {
             return
         }
+        present(alert, animated: true, completion: nil)
         let token : String = userDefaults.string(forKey: "access_token")!
         BookService().searchBooks(token: token, value: searchValue, page: String(self.pageNum), size: Constants.SCROLL.pageSize) { (dictionary) in
             OperationQueue.main.addOperation {
@@ -305,6 +317,7 @@ class SearchViewController: UIViewController, UICollectionViewDelegate, UICollec
                 
                 self.flagReachedEndOfBookResultContent()
                 self.searchCollectionView.reloadData()
+                self.alert.dismiss(animated: false, completion: nil)
             }
         }
     }
@@ -314,6 +327,7 @@ class SearchViewController: UIViewController, UICollectionViewDelegate, UICollec
         guard !self.reachedEndOfBookResults else {
             return
         }
+        present(alert, animated: true, completion: nil)
         let token : String = userDefaults.string(forKey: "access_token")!
         BookService().filterSearchBooks(token: token, filter: filter, page: String(self.pageNum), size: Constants.SCROLL.pageSize) { (dictionary) in
             OperationQueue.main.addOperation {
@@ -338,6 +352,7 @@ class SearchViewController: UIViewController, UICollectionViewDelegate, UICollec
                 
                 self.flagReachedEndOfBookResultContent()
                 self.searchCollectionView.reloadData()
+                self.alert.dismiss(animated: false, completion: nil)
             }
         }
     }
