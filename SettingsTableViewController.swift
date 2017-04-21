@@ -30,9 +30,26 @@ class SettingsTableViewController: UITableViewController {
     // MARK: - Table view data source
 
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        
+        let cell = tableView.cellForRow(at: indexPath)
+
         if indexPath.section == 0 && indexPath.row == 0 {
             performSegue(withIdentifier: "updateProfileSegue", sender: self)
             print("I'm selected")
+        }
+        
+        if(cell?.reuseIdentifier == "logOutCell"){
+            self.logoutCurrentUser()
+        }
+        
+        
+    }
+    
+    private func logoutCurrentUser(){
+        UserService().logout { (dictionary) in
+            print(dictionary)
+            let loginVC: LoginViewController? = self.storyboard?.instantiateViewController(withIdentifier: "loginViewController") as? LoginViewController
+            self.present(loginVC!, animated: true, completion: nil)
         }
     }
     

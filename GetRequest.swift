@@ -88,8 +88,12 @@ class GetRequest : NSObject, XMLParserDelegate{
                 }
             }
             
-            let json = try! JSONSerialization.jsonObject(with: data, options: [])
-            completionHandler(json as! NSDictionary)
+            let json = try? JSONSerialization.jsonObject(with: data, options: [])
+            if(json != nil){
+                completionHandler(json as! NSDictionary)
+            } else {
+                completionHandler(NSDictionary())   // empty data (eg: logging out)
+            }
         }
         
         task.resume()

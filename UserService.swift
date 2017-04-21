@@ -165,6 +165,16 @@ class UserService {
         }
     }
     
+    func logout(completed : @escaping FinishedFetchingData){
+        let access_token = userDefaults.string(forKey: "access_token")
+        GetRequest().HTTPGet(getUrl: Constants.API.logout, token: access_token!) { (dictionary) in
+            OperationQueue.main.addOperation {
+                completed(dictionary)
+            }
+        }
+        
+    }
+    
     func storeLoginResponse(response : NSDictionary, completed : FinishedStoringResponse ){
         let access_token = "Bearer ".appending(response["access_token"] as! String)
         let refresh_token = response["refresh_token"] as! String
@@ -175,5 +185,4 @@ class UserService {
         print(refresh_token)
         completed()
     }
-    
 }
