@@ -22,7 +22,8 @@ class MessagesViewController: UIViewController, UITableViewDataSource, UITableVi
         super.viewDidLoad()
         self.messageTableView.delegate = self
         self.messageTableView.dataSource = self
-        self.automaticallyAdjustsScrollViewInsets = false
+        self.messageTableView.tableHeaderView = nil
+        //self.automaticallyAdjustsScrollViewInsets = false
         // Do any additional setup after loading the view.
     }
 
@@ -60,14 +61,18 @@ class MessagesViewController: UIViewController, UITableViewDataSource, UITableVi
     
     func setRecipientData(cell : ConversationTableViewCell, convo : [String : AnyObject]){
         let initiator : [String : AnyObject]  = convo["initiator"] as! [String : AnyObject]
-        self.setAvatarImage(imageUrl: initiator["avatar"] as! String, cell: cell)
+        if let avatar = initiator["avatar"] as? String {
+            self.setAvatarImage(imageUrl: avatar, cell: cell)
+        }
         cell.receivedFrom.text = initiator["name"] as! String?
     
     }
     
     func setInitiatorData(cell : ConversationTableViewCell, convo : [String : AnyObject]){
         let recipient : [String : AnyObject] = convo["recipient"] as! [String : AnyObject]
-        self.setAvatarImage(imageUrl: recipient ["avatar"] as! String, cell: cell)
+        if let avatar = recipient["avatar"] as? String {
+            self.setAvatarImage(imageUrl: avatar, cell: cell)
+        }
         cell.receivedFrom.text = recipient["name"] as! String?
     }
     

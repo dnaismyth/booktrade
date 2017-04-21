@@ -65,6 +65,7 @@ class LoginViewController: UIViewController {
                 if(dictionary["access_token"] != nil){
                     self.storeDefaultSearchFilter() // store the default search filter into user preferences
                     UserService().storeLoginResponse(response: dictionary, completed: {
+                        UserService().storeUserPlatformToken(deviceToken: self.userDefaults.string(forKey: Constants.USER_DEFAULTS.fcmDeviceToken)!)
                         self.locService.attemptUserLocationUpdate()
                         self.getUserProfile()
                     })

@@ -16,11 +16,10 @@ class UserService {
     let userDefaults = Foundation.UserDefaults.standard
     
     // Save the current user's device token
-    func storeUserPlatformToken(){
-        let device_token = userDefaults.string(forKey: "device_token")
+    func storeUserPlatformToken(deviceToken : String){
         let access_token = userDefaults.string(forKey: "access_token")
         let data : [String:AnyObject] = [
-            "value" : device_token as AnyObject
+            "value" : deviceToken as AnyObject
         ]
         PutRequest().jsonPut(postUrl: Constants.API.storeDeviceToken, token: access_token!, body: data, completionHandler: { (dictionary) -> Void in
             OperationQueue.main.addOperation {

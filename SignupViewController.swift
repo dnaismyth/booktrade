@@ -44,7 +44,7 @@ class SignupViewController: UIViewController {
             if(response["access_token"] != nil){
                 self.storeDefaultSearchFilter()
                 UserService().storeLoginResponse(response: response as NSDictionary, completed: {
-                    UserService().storeUserPlatformToken()
+                    UserService().storeUserPlatformToken(deviceToken: self.userDefaults.string(forKey: Constants.USER_DEFAULTS.fcmDeviceToken)!)
                     self.locService.attemptUserLocationUpdate()
                 })
                 let storyboard = UIStoryboard(name: "Main", bundle: nil)
