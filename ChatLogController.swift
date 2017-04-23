@@ -122,11 +122,10 @@ class ChatLogController : UICollectionViewController, UITextFieldDelegate {
         
         let comment : [String : AnyObject] = ["text" : message as AnyObject]
         if self.conversationBookId != nil {
-            BookService().createBookComment(token: accessToken!, bookId: String(describing: self.conversationBookId!), comment: comment, completed: { (dictionary)
-                in
+            ConversationService().postCommentToConversation(token: accessToken!, convoId: String(describing: self.conversationId!), comment: comment, completed: { (dictionary) in
                 OperationQueue.main.addOperation {
-                    print("Message Sent!")
-                    self.inputTextField.text = ""        // clear the text field
+                    print("Message sent!")
+                    self.inputTextField.text = ""
                 }
             })
         }
@@ -152,7 +151,9 @@ class ChatLogController : UICollectionViewController, UITextFieldDelegate {
     }
     
     func setCellDesign(message : FirebaseMessage, cell : ChatBubbleCollectionViewCell){
-        if(currentUserIsRecipient! && String(describing: message.comment_from_id) == recipient!.id){
+        let currentUserId = userDefaults.integer(forKey: Constants.USER_DEFAULTS.userIdKey)
+        print(currentUserId)
+        if(currentUserId == message.comment_from_id!.intValue){
             cell.messageText.rightAnchor.constraint(equalTo: cell.rightAnchor).isActive = true
             cell.messageText.textAlignment = .right
         } else {

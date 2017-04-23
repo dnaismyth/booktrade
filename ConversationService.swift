@@ -35,4 +35,13 @@ class ConversationService {
         }
     }
     
+    // Post a commment to a conversation
+    func postCommentToConversation(token : String, convoId : String, comment : [String : AnyObject], completed : @escaping FinishedFetchingData){
+        let url : String = Constants.API.postCommentToConversation.replacingOccurrences(of: "{convoId}", with: convoId)
+        PostRequest().jsonPost(postUrl: url, token: token, body: comment) { (dictionary) in
+            completed(dictionary)
+        }
+            
+    }
+    
 }

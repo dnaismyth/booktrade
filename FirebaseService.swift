@@ -37,7 +37,6 @@ class FirebaseService {
         userRef.child(userId).observeSingleEvent(of: .value, with: { (snapshot) in
             if let dictionary = snapshot.value as? [String : AnyObject] {
                 user.id = snapshot.key
-                print(user.id)
                 self.setUserProperties(dictionary: dictionary, user: user)
             }
             completed(user)
