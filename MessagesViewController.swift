@@ -15,6 +15,7 @@ class MessagesViewController: UIViewController, UITableViewDataSource, UITableVi
     var conversations : [String : AnyObject] = [:]
     var convoContent : NSArray = []
     var isRecipientView : Bool = true
+    var selectedCell : ConversationTableViewCell?
 
     @IBOutlet weak var messageTableView: UITableView!
     
@@ -39,6 +40,14 @@ class MessagesViewController: UIViewController, UITableViewDataSource, UITableVi
     internal func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "conversationCell") as! ConversationTableViewCell
         let convo : [String : AnyObject] = convoContent[indexPath.row] as! [String : AnyObject]
+        
+        // Users
+        let recipient : [String : AnyObject] = convo["recipient"] as! [String : AnyObject]
+        let initiator : [String : AnyObject] = convo["initiator"] as! [String : AnyObject]
+        
+        cell.recipientId = recipient["id"] as! Int
+        cell.initiatorId = initiator["id"] as! Int
+        
         if let messageCount = convo["unreadMessageCount"] as? Int{
             if(messageCount > 0){
                 cell.unreadMessage.text = String(messageCount)
@@ -88,17 +97,10 @@ class MessagesViewController: UIViewController, UITableViewDataSource, UITableVi
     }
 
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        print(indexPath)
+        selectedCell = messageTableView.cellForRow(at: indexPath) as? ConversationTableViewCell
+        performSegue(withIdentifier: "chatLogSegue", sender: self)
     }
-    /*
-    // MARK: - Navigation
-
-    // In a storyboard-based application, you will often want to do a little preparation before navigation
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        // Get the new view controller using segue.destinationViewController.
-        // Pass the selected object to the new view controller.
-    }
-    */
+ 
     @IBAction func messageSelection(_ sender: UISegmentedControl) {
         switch sender.selectedSegmentIndex {
         case 0:
@@ -140,6 +142,18 @@ class MessagesViewController: UIViewController, UITableViewDataSource, UITableVi
                 self.messageTableView.reloadData()
             }
         })
+    }
+    
+    // MARK: - Navigation
+    
+    // In a storyboard-based application, you will often want to do a little preparation before navigation
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        if(segue.identifier == "chatLogSegue"){
+            let chatController = segue.destination as! ChatLogController
+            chatController.conversationId = selectedCell?.conversationId!
+            chatController.recipientId = selectedCell?.recipientId!
+            chatController.initiatorId = selectedCell?.initiatorId!
+        }
     }
 
 }

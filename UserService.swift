@@ -56,6 +56,36 @@ class UserService {
         }
     }
     
+    // Get the current user's profile
+    func getUserProfileAndStoreUserDefaults(completed : @escaping FinishedStoringResponse){
+        UserService().getUserProfile(userId: nil) { (dictionary) in
+            OperationQueue.main.addOperation {
+                self.userDefaults.set(dictionary["name"], forKey: Constants.USER_DEFAULTS.nameKey)
+                self.userDefaults.set(dictionary["email"], forKey: Constants.USER_DEFAULTS.emailKey)
+                
+                if let pushNotification : Bool = dictionary["pushNotification"] as? Bool {
+                    self.userDefaults.set(pushNotification, forKey: Constants.USER_DEFAULTS.notificationKey)
+                }
+                
+                if let avatarUrl : String = dictionary["avatar"] as? String{
+                    self.userDefaults.set(avatarUrl, forKey: Constants.USER_DEFAULTS.userAvatar)
+                }
+                
+                if let firebaseDBToken : String = dictionary["databaseToken"] as? String {
+                    print(firebaseDBToken)
+                    self.userDefaults.set(firebaseDBToken, forKey: Constants.USER_DEFAULTS.firebaseDBToken)
+                }
+                
+                if let bio : String = dictionary["bio"] as? String {
+                    self.userDefaults.set(bio, forKey: Constants.USER_DEFAULTS.bioKey)
+                }
+                
+                completed()
+
+            }
+        }
+    }
+    
     // Update the current user's avatar
     func updateUserAvatar(avatar : String) {
         let access_token = userDefaults.string(forKey: "access_token")

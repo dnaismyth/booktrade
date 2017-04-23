@@ -17,6 +17,8 @@ class ConversationTableViewCell: UITableViewCell {
     @IBOutlet weak var unreadMessage: UILabel!
     
     var conversationId : Int?   // id of the conversation
+    var recipientId : Int?
+    var initiatorId : Int?
     
     override func awakeFromNib() {
         super.awakeFromNib()

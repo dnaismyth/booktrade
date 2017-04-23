@@ -318,8 +318,7 @@ class ProfileViewController: UIViewController, UICollectionViewDelegate, UIColle
         }
         
         if let location : [String : AnyObject] = userDefaults.dictionary(forKey: Constants.USER_DEFAULTS.locationKey) as [String : AnyObject]?{
-            let city : String = location ["city"] as! String
-            self.locationLabel.text = city
+            self.locationLabel.text = Utilities.buildLocationLabel(location: location)
         }
     }
     

@@ -7,12 +7,13 @@
 //
 
 import UIKit
+import Firebase
 
 class LoginViewController: UIViewController {
     
     let userDefaults = Foundation.UserDefaults.standard
     typealias FinishedStoringResponse = () -> ()
-
+    
     let locService = LocationService()
     
     @IBOutlet weak var emailTextField: UITextField!
@@ -69,7 +70,11 @@ class LoginViewController: UIViewController {
                             UserService().storeUserPlatformToken(deviceToken: fcmToken)
                         }
                         self.locService.attemptUserLocationUpdate()
-                        self.getUserProfile()
+                        UserService().getUserProfileAndStoreUserDefaults(completed: {
+                            if let firebaseToken = self.userDefaults.string(forKey: Constants.USER_DEFAULTS.firebaseDBToken){
+                                FirebaseService().authenticateUser(customToken: firebaseToken)
+                            }
+                        })
                     })
                     let storyboard = UIStoryboard(name: "Main", bundle: nil)
                     let viewController = storyboard.instantiateViewController(withIdentifier :"tabBarController") as! TabBarController
@@ -84,27 +89,10 @@ class LoginViewController: UIViewController {
         })
     }
     
-    // Get the current user's profile
-    func getUserProfile(){
-        UserService().getUserProfile(userId: nil) { (dictionary) in
-            self.userDefaults.set(dictionary["name"], forKey: Constants.USER_DEFAULTS.nameKey)
-            self.userDefaults.set(dictionary["email"], forKey: Constants.USER_DEFAULTS.emailKey)
-            self.userDefaults.set(dictionary["pushNotification"], forKey: Constants.USER_DEFAULTS.notificationKey)
-            if let avatarUrl : String = dictionary["avatar"] as? String{
-                self.userDefaults.set(avatarUrl, forKey: Constants.USER_DEFAULTS.userAvatar)
-            }
-            
-            if let bio : String = dictionary["bio"] as? String {
-                self.userDefaults.set(bio, forKey: Constants.USER_DEFAULTS.bioKey)
-            }
-        }
-    }
-    
     private func storeDefaultSearchFilter(){
         let filter_pref : [String : AnyObject] = Constants.FILTER.defaultFilter
         userDefaults.set( filter_pref, forKey: "filter_pref")
     }
-    
 
     /*
     // MARK: - Navigation

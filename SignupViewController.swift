@@ -11,7 +11,7 @@ import UIKit
 class SignupViewController: UIViewController {
     
     typealias FinishedStoringResponse = () -> ()
-    
+        
     let userDefaults = Foundation.UserDefaults.standard
     
     @IBOutlet var exitButton: UIButton!
@@ -40,23 +40,31 @@ class SignupViewController: UIViewController {
     @IBAction func signupAction(_ sender: UIButton) {
         let signupRequest : [String : AnyObject] = self.buildDataForSignupRequest()
         UserService().signupNewUser(signupRequest: signupRequest) { (dictionary) in
-            let response : [String:AnyObject] = dictionary["data"] as! [String:AnyObject]
-            if(response["access_token"] != nil){
-                self.storeDefaultSearchFilter()
-                UserService().storeLoginResponse(response: response as NSDictionary, completed: {
-                    if let fcmToken = self.userDefaults.string(forKey: Constants.USER_DEFAULTS.fcmDeviceToken) {
-                        UserService().storeUserPlatformToken(deviceToken: fcmToken)
-                    }
-                    self.locService.attemptUserLocationUpdate()
-                })
-                let storyboard = UIStoryboard(name: "Main", bundle: nil)
-                let viewController = storyboard.instantiateViewController(withIdentifier :"tabBarController") as! TabBarController
-                let searchNavController = viewController.viewControllers?[0] as! UINavigationController
-                let searchController = searchNavController.viewControllers[0] as! SearchViewController
-                searchController.getMostRecentBooks()   // load the most recent books before entering view
-                self.present(viewController, animated: true)
+            if let response : [String:AnyObject] = dictionary["data"] as? [String:AnyObject]{
+                if(response["access_token"] != nil){
+                    self.storeDefaultSearchFilter()
+                    UserService().storeLoginResponse(response: response as NSDictionary, completed: {
+                        if let fcmToken = self.userDefaults.string(forKey: Constants.USER_DEFAULTS.fcmDeviceToken) {
+                            UserService().storeUserPlatformToken(deviceToken: fcmToken)
+                        }
+                        self.locService.attemptUserLocationUpdate()
+                        UserService().getUserProfileAndStoreUserDefaults(completed: {
+                            if let token = self.userDefaults.string(forKey: Constants.USER_DEFAULTS.firebaseDBToken){
+                                FirebaseService().authenticateUser(customToken: token)
+                            }
+                        })
+                    })
+                    let storyboard = UIStoryboard(name: "Main", bundle: nil)
+                    let viewController = storyboard.instantiateViewController(withIdentifier :"tabBarController") as! TabBarController
+                    let searchNavController = viewController.viewControllers?[0] as! UINavigationController
+                    let searchController = searchNavController.viewControllers[0] as! SearchViewController
+                    searchController.getMostRecentBooks()   // load the most recent books before entering view
+                    self.present(viewController, animated: true)
+                } else {
+                    self.showInvalidAlert(alertTitle: "Error Signing Up", alertMessage: "The e-mail address is already in use.")
+                }
             } else {
-                self.showInvalidAlert(alertTitle: "Error Signing Up", alertMessage: "The e-mail address is already in use.")
+                self.showInvalidAlert(alertTitle: "Error Signing Up", alertMessage: "An issue occured when trying to sign up.")
             }
 
         }
