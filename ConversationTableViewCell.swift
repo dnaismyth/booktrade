@@ -19,6 +19,7 @@ class ConversationTableViewCell: UITableViewCell {
     var conversationId : Int?   // id of the conversation
     var recipientId : Int?
     var initiatorId : Int?
+    var convoBookId : Int?  // the book in which the conversation had been initiated with
     
     override func awakeFromNib() {
         super.awakeFromNib()

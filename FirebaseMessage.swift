@@ -11,6 +11,8 @@ import Foundation
 class FirebaseMessage : NSObject {
     
     var text : String?
-    var sentDate : String?
-    var sentFromId : String?
+    var from_id : NSNumber?
+    var comment_from_id : NSNumber?
+    var to_id : NSNumber?
+    
 }

@@ -13,7 +13,7 @@ class FirebaseService {
     
     // MARK: Properties
     typealias FinishedFetchingUser = (FirebaseUser) -> ()
-    typealias FinishedFetchingMessages = ([FirebaseMessage]) -> ()
+    typealias FinishedFetchingMessages = (FirebaseMessage) -> ()
     
     // User reference to firebase database
     let userRef : FIRDatabaseReference = FIRDatabase.database().reference().child("users")
@@ -36,7 +36,8 @@ class FirebaseService {
         let user = FirebaseUser()
         userRef.child(userId).observeSingleEvent(of: .value, with: { (snapshot) in
             if let dictionary = snapshot.value as? [String : AnyObject] {
-                user.id = userId
+                user.id = snapshot.key
+                print(user.id)
                 self.setUserProperties(dictionary: dictionary, user: user)
             }
             completed(user)
@@ -61,34 +62,15 @@ class FirebaseService {
     // Fetch conversations from firebase by their id
     func fetchConversation(convoId : String, completed : @escaping FinishedFetchingMessages){
         print(convoId)
-        var messages : [FirebaseMessage] = []
-        convoRef.child(convoId).observe(.value, with: { (snapshot) in
-            if(snapshot.hasChild("messages")){
-                let firebaseMessages = snapshot.childSnapshot(forPath: "messages")
-                for child in firebaseMessages.children {
-                    messages.append(self.setMessageProperties(msg: child as! FIRDataSnapshot))
-                }
+        let currentConvoRef = convoRef.child(convoId)
+        currentConvoRef.child("messages").observe(.childAdded, with: { (snapshot) in
+            if let dictionary = snapshot.value as? [String: AnyObject]{
+                let message = FirebaseMessage()
+                message.setValuesForKeys(dictionary)
+                completed(message)
             }
-            completed(messages)
         })
+    
     }
-    
-    
-    // Set message properties of each message within a conversation
-    func setMessageProperties(msg : FIRDataSnapshot) -> FirebaseMessage {
-        let firebaseMessage = FirebaseMessage()
-        if(msg.hasChild("text")){
-            firebaseMessage.text = msg.childSnapshot(forPath: "text").value as! String?
-        }
-        
-        if(msg.hasChild("sent_date")){
-            firebaseMessage.sentDate = msg.childSnapshot(forPath: "sent_date").value as! String?
-        }
-        
-        if(msg.hasChild("sent_from_id")){
-            firebaseMessage.sentFromId = msg.childSnapshot(forPath: "sent_from_id").value as! String?
-        }
-        return firebaseMessage
-   }
     
 }

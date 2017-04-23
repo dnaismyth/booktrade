@@ -45,8 +45,8 @@ class MessagesViewController: UIViewController, UITableViewDataSource, UITableVi
         let recipient : [String : AnyObject] = convo["recipient"] as! [String : AnyObject]
         let initiator : [String : AnyObject] = convo["initiator"] as! [String : AnyObject]
         
-        cell.recipientId = recipient["id"] as! Int
-        cell.initiatorId = initiator["id"] as! Int
+        cell.recipientId = recipient["id"] as? Int
+        cell.initiatorId = initiator["id"] as? Int
         
         if let messageCount = convo["unreadMessageCount"] as? Int{
             if(messageCount > 0){
@@ -62,6 +62,7 @@ class MessagesViewController: UIViewController, UITableViewDataSource, UITableVi
         }
         
         
+        cell.convoBookId = book["id"] as! Int?
         cell.bookTitle.text = book["title"] as! String?
         cell.conversationId = convo["id"] as! Int?
         
@@ -153,6 +154,8 @@ class MessagesViewController: UIViewController, UITableViewDataSource, UITableVi
             chatController.conversationId = selectedCell?.conversationId!
             chatController.recipientId = selectedCell?.recipientId!
             chatController.initiatorId = selectedCell?.initiatorId!
+            chatController.currentUserIsRecipient = isRecipientView
+            chatController.conversationBookId = selectedCell?.convoBookId!
         }
     }
 

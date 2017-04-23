@@ -11,10 +11,15 @@ import Firebase
 
 class ChatLogController : UICollectionViewController, UITextFieldDelegate {
     
+    // User Defaults
+    let userDefaults = Foundation.UserDefaults.standard
+    
     // Properties passed through from MessagesViewController
     var conversationId : Int?
+    var conversationBookId : Int?
     var initiatorId : Int?
     var recipientId : Int?
+    var currentUserIsRecipient : Bool?
     
     var conversationMessages : [FirebaseMessage] = []
     
@@ -56,8 +61,8 @@ class ChatLogController : UICollectionViewController, UITextFieldDelegate {
         }
         
         if(conversationId != nil){
-            FirebaseService().fetchConversation(convoId: String(describing: conversationId!), completed: { (messages) in
-                self.conversationMessages = messages
+            FirebaseService().fetchConversation(convoId: String(describing: conversationId!), completed: { (message) in
+                self.conversationMessages.append(message)
                 self.collectionView?.reloadData()
             })
         }
@@ -108,11 +113,25 @@ class ChatLogController : UICollectionViewController, UITextFieldDelegate {
     }
     
     @objc private func sendButtonAction(){
-        let ref = FIRDatabase.database().reference().child("messages")
-        let childRef = ref.childByAutoId()
-        let values = ["text" : inputTextField.text!]
-        childRef.updateChildValues(values)
+        let accessToken = userDefaults.string(forKey: "access_token")
+        
+        guard let message = inputTextField.text else {
+            print("Message is empty!")
+            return
+        }
+        
+        let comment : [String : AnyObject] = ["text" : message as AnyObject]
+        if self.conversationBookId != nil {
+            BookService().createBookComment(token: accessToken!, bookId: String(describing: self.conversationBookId!), comment: comment, completed: { (dictionary)
+                in
+                OperationQueue.main.addOperation {
+                    print("Message Sent!")
+                    self.inputTextField.text = ""        // clear the text field
+                }
+            })
+        }
     }
+    
     
     // Allow enter/return button to submit
     func textFieldShouldReturn(_ textField: UITextField) -> Bool {
@@ -127,8 +146,19 @@ class ChatLogController : UICollectionViewController, UITextFieldDelegate {
     override func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "messageCell", for: indexPath) as! ChatBubbleCollectionViewCell
         let message = conversationMessages[indexPath.item]
+        self.setCellDesign(message: message, cell: cell)
         cell.messageText.text = message.text
         return cell
+    }
+    
+    func setCellDesign(message : FirebaseMessage, cell : ChatBubbleCollectionViewCell){
+        if(currentUserIsRecipient! && String(describing: message.comment_from_id) == recipient!.id){
+            cell.messageText.rightAnchor.constraint(equalTo: cell.rightAnchor).isActive = true
+            cell.messageText.textAlignment = .right
+        } else {
+            cell.messageText.leftAnchor.constraint(equalTo: cell.leftAnchor).isActive = true
+            cell.messageText.textAlignment = .left
+        }
     }
     
     
