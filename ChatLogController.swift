@@ -20,6 +20,7 @@ class ChatLogController : UICollectionViewController, UITextFieldDelegate {
     var initiatorId : Int?
     var recipientId : Int?
     var currentUserIsRecipient : Bool?
+    var currentUserId : Int?
     
     var conversationMessages : [FirebaseMessage] = []
     
@@ -36,6 +37,7 @@ class ChatLogController : UICollectionViewController, UITextFieldDelegate {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        self.currentUserId = userDefaults.integer(forKey: Constants.USER_DEFAULTS.userIdKey)
         collectionView?.delegate = self
         collectionView?.dataSource = self
         tabBarController?.hidesBottomBarWhenPushed = true
@@ -143,24 +145,26 @@ class ChatLogController : UICollectionViewController, UITextFieldDelegate {
     }
     
     override func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "messageCell", for: indexPath) as! ChatBubbleCollectionViewCell
         let message = conversationMessages[indexPath.item]
-        self.setCellDesign(message: message, cell: cell)
-        cell.messageText.text = message.text
-        return cell
-    }
-    
-    func setCellDesign(message : FirebaseMessage, cell : ChatBubbleCollectionViewCell){
-        let currentUserId = userDefaults.integer(forKey: Constants.USER_DEFAULTS.userIdKey)
-        print(currentUserId)
-        if(currentUserId == message.comment_from_id!.intValue){
-            cell.messageText.rightAnchor.constraint(equalTo: cell.rightAnchor).isActive = true
-            cell.messageText.textAlignment = .right
+        if(message.comment_from_id!.intValue == currentUserId){
+            let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "messageCell", for: indexPath) as! ChatBubbleCollectionViewCell
+            self.setCellDesign(message: message, cell: cell)
+            return cell
         } else {
-            cell.messageText.leftAnchor.constraint(equalTo: cell.leftAnchor).isActive = true
-            cell.messageText.textAlignment = .left
+            let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "messageResponseCell", for: indexPath) as! ResponseBubbleCollectionViewCell
+            self.setCellResponseDesign(message: message, cell: cell)
+            return cell
         }
     }
     
+    func setCellDesign(message : FirebaseMessage, cell : ChatBubbleCollectionViewCell){
+        cell.messageText.text = message.text
+        cell.messageText.textAlignment = .right
+    }
+    
+    func setCellResponseDesign(message : FirebaseMessage, cell : ResponseBubbleCollectionViewCell){
+        cell.messageText.text = message.text
+        cell.messageText.textAlignment = .left
+    }
     
 }
