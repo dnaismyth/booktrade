@@ -9,7 +9,7 @@
 import UIKit
 import Firebase
 
-class ChatLogController : UICollectionViewController, UITextFieldDelegate {
+class ChatLogController : UICollectionViewController, UICollectionViewDelegateFlowLayout, UITextFieldDelegate {
     
     // User Defaults
     let userDefaults = Foundation.UserDefaults.standard
@@ -40,6 +40,7 @@ class ChatLogController : UICollectionViewController, UITextFieldDelegate {
         self.currentUserId = userDefaults.integer(forKey: Constants.USER_DEFAULTS.userIdKey)
         collectionView?.delegate = self
         collectionView?.dataSource = self
+        
         tabBarController?.hidesBottomBarWhenPushed = true
         fetchConversationUsers()
         setupChatInputComponents()
@@ -140,6 +141,21 @@ class ChatLogController : UICollectionViewController, UITextFieldDelegate {
         return true
     }
     
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
+        var height: CGFloat = CGFloat(80)
+        if let text = conversationMessages[indexPath.item].text {
+            height = estimatedFrameForText(text: text).height + 15
+        }
+        return CGSize(width: view.frame.width, height : height)
+    }
+    
+    private func estimatedFrameForText(text: String) -> CGRect{
+        let size = CGSize(width: 200, height: 1000)
+        let options = NSStringDrawingOptions.usesFontLeading.union(.usesLineFragmentOrigin)
+        // Change the font here to Helvetica
+        return NSString(string: text).boundingRect(with: size, options: options, attributes: [NSFontAttributeName: UIFont.systemFont(ofSize: 16)], context: nil)
+    }
+    
     override func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         return conversationMessages.count
     }
@@ -159,12 +175,18 @@ class ChatLogController : UICollectionViewController, UITextFieldDelegate {
     
     func setCellDesign(message : FirebaseMessage, cell : ChatBubbleCollectionViewCell){
         cell.messageText.text = message.text
-        cell.messageText.textAlignment = .right
+        cell.messageText.isScrollEnabled = false
     }
     
     func setCellResponseDesign(message : FirebaseMessage, cell : ResponseBubbleCollectionViewCell){
         cell.messageText.text = message.text
-        cell.messageText.textAlignment = .left
+        cell.messageText.isScrollEnabled = false
+        if(recipient != nil && recipient!.id == String(describing: message.comment_from_id)){
+            Utilities.setImage(imageUrl: recipient!.avatar!, imageView: cell.avatarImageView)
+        } else if (initiator != nil && initiator!.avatar != nil){
+            Utilities.setImage(imageUrl: initiator!.avatar!, imageView: cell.avatarImageView)
+        }
+        
     }
     
 }

@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import UIKit
 
 class Utilities{
     
@@ -20,6 +21,16 @@ class Utilities{
     
     static func kilometersToMiles(km : Float) -> Float {
         return milesInKilometer * km
+    }
+    
+    static func setImage(imageUrl : String, imageView : UIImageView){
+        if let url = NSURL(string: imageUrl) {
+            if let data = NSData(contentsOf: url as URL){
+                if let imageUrl = UIImage(data: data as Data) {
+                    imageView.image = imageUrl
+                }
+            }
+        }
     }
     
 }

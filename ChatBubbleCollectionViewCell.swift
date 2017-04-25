@@ -10,6 +10,20 @@ import UIKit
 
 class ChatBubbleCollectionViewCell: UICollectionViewCell {
     
-    @IBOutlet var messageText: UILabel!
+    
+    @IBOutlet var bubbleView: UIView!
+    @IBOutlet var messageText: UITextView!
+    
+    override func awakeFromNib() {
+        self.bubbleView.cornerRadius()
+    }
+    
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+    }
+    
+    required init?(coder aDecoder: NSCoder) {
+        super.init(coder: aDecoder)
+    }
     
 }
