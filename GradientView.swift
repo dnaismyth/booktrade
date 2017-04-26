@@ -24,5 +24,4 @@ import UIKit
         gradient.zPosition = -1
         layer.addSublayer(gradient)
     }
-    
 }

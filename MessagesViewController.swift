@@ -18,9 +18,11 @@ class MessagesViewController: UIViewController, UITableViewDataSource, UITableVi
     var selectedCell : ConversationTableViewCell?
 
     @IBOutlet weak var messageTableView: UITableView!
+    @IBOutlet var messageTypeSegmentControl: SegmentedControl!
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        self.setupSegmentedControl(index: 0)
         self.messageTableView.delegate = self
         self.messageTableView.dataSource = self
         self.messageTableView.tableHeaderView = nil
@@ -32,6 +34,12 @@ class MessagesViewController: UIViewController, UITableViewDataSource, UITableVi
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
+    }
+    
+    func setupSegmentedControl(index: Int){
+        self.messageTypeSegmentControl.removeBorder()
+        self.messageTypeSegmentControl.addUnderlineForSelectedSegment()
+        self.messageTypeSegmentControl.selectedSegmentIndex = index
     }
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
@@ -104,6 +112,7 @@ class MessagesViewController: UIViewController, UITableViewDataSource, UITableVi
     }
  
     @IBAction func messageSelection(_ sender: UISegmentedControl) {
+        self.messageTypeSegmentControl.changeUnderlinePosition()
         switch sender.selectedSegmentIndex {
         case 0:
             self.loadRecipientConversations()

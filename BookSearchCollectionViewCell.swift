@@ -21,7 +21,8 @@ class BookSearchCollectionViewCell: UICollectionViewCell, UIGestureRecognizerDel
     @IBOutlet var ownerAvatar: UIButton!
     @IBOutlet var priceLabel: UILabel!
     @IBOutlet var uploadedTime: UILabel!
-    @IBOutlet var textbookView: TextbookUIView!
+    @IBOutlet var bookBanner: UIImageView!
+    //@IBOutlet var textbookView: TextbookUIView!
     @IBOutlet var labelView: UIView!
     
     var delegate:ProfileSelectDelegate!
@@ -68,12 +69,13 @@ class BookSearchCollectionViewCell: UICollectionViewCell, UIGestureRecognizerDel
     
     override func awakeFromNib() {
         super.awakeFromNib()
-        self.textbookView.isHidden = true
-        self.coverImage.dropShadow()
+        self.bookBanner.isHidden = true
         self.labelView.dropShadow()
-        self.labelView.roundCorners([.bottomLeft, .bottomRight], radius: CGFloat(Constants.DESIGN.cellRadius))
-        self.coverImage.cornerRadius()
-        self.textbookView.roundCorners([.topRight], radius: CGFloat(Constants.DESIGN.cellRadius))
+        //self.coverImage.dropShadow()
+        //self.labelView.dropShadow()
+        //self.labelView.roundCorners([.bottomLeft, .bottomRight], radius: CGFloat(Constants.DESIGN.cellRadius))
+        //self.coverImage.cornerRadius()
+        //self.textbookView.roundCorners([.topRight], radius: CGFloat(Constants.DESIGN.cellRadius))
     }
 
 }

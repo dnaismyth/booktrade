@@ -45,6 +45,7 @@ class ProfileViewController: UIViewController, UICollectionViewDelegate, UIColle
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        self.setupSegmentedControl(index: 0)
            NotificationCenter.default.addObserver(self, selector: #selector(self.profileUpdated(notification:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.profileUpdated), object: nil)
         self.bookCollectionView.delegate = self
         self.bookCollectionView.dataSource = self
@@ -65,10 +66,16 @@ class ProfileViewController: UIViewController, UICollectionViewDelegate, UIColle
         // Dispose of any resources that can be recreated.
     }
     
+    func setupSegmentedControl(index: Int){
+        self.bookStatusSegmentControl.addUnderlineForSelectedSegment()
+        self.bookStatusSegmentControl.selectedSegmentIndex = index
+    }
+    
     func loadSelectedUserProfile(){
         avatarImage.image = self.userAvatar
         locationLabel.text = self.userLocation
         bioLabel.text = self.userBio
+        bioLabel.sizeToFit()
         userNameLabel.text = self.userName
         locationLabel.text = self.userLocation
     }
@@ -82,15 +89,29 @@ class ProfileViewController: UIViewController, UICollectionViewDelegate, UIColle
             locationLabel.text = Utilities.buildLocationLabel(location: location)
         }
         bioLabel.text = userDefaults.string(forKey: Constants.USER_DEFAULTS.bioKey)
+        bioLabel.sizeToFit()
         userNameLabel.text = userDefaults.string(forKey: Constants.USER_DEFAULTS.nameKey)
         //TODO: Hide/show settings depending on if the current user.id = user.profile.id
-        self.navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Settings", style: .plain, target: self, action: #selector(self.viewUserSettings))
+        self.navigationItem.rightBarButtonItem = self.createSettingsButton()
         let tapGestureRecognizer = UITapGestureRecognizer(target: self, action: #selector(avatarTapped(tapGestureRecognizer:)))
         longTapGesture = UILongPressGestureRecognizer(target: self, action: #selector(self.longTapGestureRecognizer(tapGestureRecognizer:)))
         self.setupLongGestureRecognizer(gestureRecognizer: longTapGesture!)
         self.bookCollectionView.addGestureRecognizer(longTapGesture!)
         avatarImage.isUserInteractionEnabled = true
         avatarImage.addGestureRecognizer(tapGestureRecognizer)
+    }
+    
+    func createSettingsButton() -> UIBarButtonItem {
+        let button: UIButton = UIButton(type: .system)
+        button.translatesAutoresizingMaskIntoConstraints = false
+        button.setImage(#imageLiteral(resourceName: "settings").withRenderingMode(UIImageRenderingMode.alwaysTemplate), for: .normal)
+        button.setImage(#imageLiteral(resourceName: "settings").withRenderingMode(UIImageRenderingMode.alwaysTemplate), for: .selected)
+        button.setImage(#imageLiteral(resourceName: "settings").withRenderingMode(UIImageRenderingMode.alwaysTemplate), for: .highlighted)
+        
+        button.addTarget(self, action: #selector(self.viewUserSettings), for: .touchUpInside)
+        button.tintColor = UIColor.black
+        button.frame = CGRect(x: 0, y: 0, width: 30, height: 30)
+        return UIBarButtonItem(customView: button)
     }
     
     func avatarTapped(tapGestureRecognizer: UITapGestureRecognizer)
@@ -161,7 +182,7 @@ class ProfileViewController: UIViewController, UICollectionViewDelegate, UIColle
         cell.textbookView.isHidden = true
         let book = self.bookContent[indexPath.item]
         let owner = book["owner"] as! [String : AnyObject]
-        cell.layer.cornerRadius = CGFloat(Constants.DESIGN.cellRadius)
+        //cell.layer.cornerRadius = CGFloat(Constants.DESIGN.cellRadius)
         cell.bookId = book["id"] as? Int
         cell.author = book["author"] as? String
         cell.bookTitleLabel.text = book["title"] as? String
@@ -284,6 +305,7 @@ class ProfileViewController: UIViewController, UICollectionViewDelegate, UIColle
     }
     
     @IBAction func bookStatusView(_ sender: UISegmentedControl) {
+        bookStatusSegmentControl.changeUnderlinePosition()
         self.bookContent = []
         self.resetPaginationValues()
         switch sender.selectedSegmentIndex {

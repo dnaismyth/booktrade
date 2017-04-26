@@ -55,9 +55,10 @@ class BookCollectionViewCell: UICollectionViewCell {
     override func awakeFromNib() {
         super.awakeFromNib()
         self.textbookView.isHidden = true
-        self.coverImage.dropShadow()
-        self.coverImage.cornerRadius()
-        self.textbookView.roundCorners([.topRight], radius: CGFloat(Constants.DESIGN.cellRadius))
+        self.dropShadow()
+        //self.coverImage.dropShadow()
+        //self.coverImage.cornerRadius()
+        //self.textbookView.roundCorners([.topRight], radius: CGFloat(Constants.DESIGN.cellRadius))
     }
     
     

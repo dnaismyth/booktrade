@@ -14,9 +14,11 @@ extension UILabel {
     func createFreeLabel(){
         self.text = "Free"
         self.backgroundColor = Constants.COLOR.freeGreen
-        self.layer.cornerRadius = CGFloat(Constants.DESIGN.cellRadius)
+        //self.layer.cornerRadius = CGFloat(Constants.DESIGN.cellRadius)
         self.textAlignment = NSTextAlignment.center
         self.textColor = UIColor.white
+        let frameSize: CGSize = self.frame.size
+        self.frame.size = CGSize(width: 34, height: frameSize.height)
     }
     
     func diagonalLabel(){
