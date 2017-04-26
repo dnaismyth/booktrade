@@ -24,6 +24,7 @@ class MessagesViewController: UIViewController, UITableViewDataSource, UITableVi
         self.messageTableView.delegate = self
         self.messageTableView.dataSource = self
         self.messageTableView.tableHeaderView = nil
+        self.messageTableView.tableFooterView = UIView()
         //self.automaticallyAdjustsScrollViewInsets = false
         // Do any additional setup after loading the view.
     }
@@ -156,6 +157,7 @@ class MessagesViewController: UIViewController, UITableViewDataSource, UITableVi
             chatController.initiatorId = selectedCell?.initiatorId!
             chatController.currentUserIsRecipient = isRecipientView
             chatController.conversationBookId = selectedCell?.convoBookId!
+            chatController.recipientName = selectedCell?.receivedFrom.text!
         }
     }
 

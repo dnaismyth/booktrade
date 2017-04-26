@@ -16,12 +16,19 @@ class LoginViewController: UIViewController {
     
     let locService = LocationService()
     
+    @IBOutlet var logoImageView: UIImageView!
     @IBOutlet weak var emailTextField: UITextField!
     @IBOutlet weak var passwordTextField: UITextField!
+    @IBOutlet var loginButton: UIButton!
     
-
     override func viewDidLoad() {
         super.viewDidLoad()
+        self.loginButton.layer.borderWidth = 1
+        self.loginButton.layer.borderColor = UIColor.white.cgColor
+        self.loginButton.cornerRadius()
+        self.logoImageView.renderImageColor(color: UIColor.white)
+        emailTextField.designTextField(iconName: "email", tintColor: UIColor.white, placeholder: "Email")
+        passwordTextField.designTextField(iconName: "password", tintColor: UIColor.white, placeholder: "Password")
         UserDefaults.standard.removePersistentDomain(forName: Bundle.main.bundleIdentifier!)
         self.hideKeyboardWhenTappedAround()
         // Do any additional setup after loading the view.

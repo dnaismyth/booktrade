@@ -21,6 +21,7 @@ class ChatLogController : UICollectionViewController, UICollectionViewDelegateFl
     var recipientId : Int?
     var currentUserIsRecipient : Bool?
     var currentUserId : Int?
+    var recipientName : String?
     
     var conversationMessages : [FirebaseMessage] = []
     
@@ -37,6 +38,7 @@ class ChatLogController : UICollectionViewController, UICollectionViewDelegateFl
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        self.setupNavigationTitleView()
         self.currentUserId = userDefaults.integer(forKey: Constants.USER_DEFAULTS.userIdKey)
         collectionView?.delegate = self
         collectionView?.dataSource = self
@@ -44,6 +46,18 @@ class ChatLogController : UICollectionViewController, UICollectionViewDelegateFl
         tabBarController?.hidesBottomBarWhenPushed = true
         fetchConversationUsers()
         setupChatInputComponents()
+    }
+    
+    func scrollToBottom(){
+        let item = self.collectionView(self.collectionView!, numberOfItemsInSection: 0) - 1
+        let lastItemIndex = NSIndexPath(item: item, section: 0)
+        self.collectionView?.scrollToItem(at: lastItemIndex as IndexPath, at: UICollectionViewScrollPosition.bottom, animated: false)
+    }
+    
+    func setupNavigationTitleView(){
+        if let headerTitle = self.recipientName {
+            navigationItem.title = headerTitle
+        }
     }
     
     // Fetch users belonging to the current conversation from Firebase
@@ -67,6 +81,7 @@ class ChatLogController : UICollectionViewController, UICollectionViewDelegateFl
             FirebaseService().fetchConversation(convoId: String(describing: conversationId!), completed: { (message) in
                 self.conversationMessages.append(message)
                 self.collectionView?.reloadData()
+                self.scrollToBottom()
             })
         }
     }
@@ -74,6 +89,7 @@ class ChatLogController : UICollectionViewController, UICollectionViewDelegateFl
     func setupChatInputComponents(){
         let containerView = UIView()
         containerView.translatesAutoresizingMaskIntoConstraints = false
+        containerView.backgroundColor = UIColor.white
         view.addSubview(containerView)
         
         // Container Constraint anchors
@@ -113,6 +129,8 @@ class ChatLogController : UICollectionViewController, UICollectionViewDelegateFl
         separatorLineView.topAnchor.constraint(equalTo: containerView.topAnchor).isActive = true
         separatorLineView.widthAnchor.constraint(equalTo: containerView.widthAnchor).isActive = true
         separatorLineView.heightAnchor.constraint(equalToConstant: 1).isActive = true
+        
+        view.bringSubview(toFront: containerView)
     }
     
     @objc private func sendButtonAction(){

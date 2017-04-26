@@ -25,6 +25,9 @@ class SignupViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         self.hideKeyboardWhenTappedAround()
+        nameTextField.designTextField(iconName: "name", tintColor: UIColor.black, placeholder: "Name")
+        emailTextField.designTextField(iconName: "email", tintColor: UIColor.black, placeholder: "Email")
+        passwordTextField.designTextField(iconName: "password", tintColor: UIColor.black, placeholder: "Password")
         // Do any additional setup after loading the view.
     }
 
