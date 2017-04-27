@@ -37,6 +37,7 @@ class SearchViewController: UIViewController, UICollectionViewDelegate, UICollec
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        self.navigationItem.rightBarButtonItem = self.createFilterButton()
         loadingIndicator.hidesWhenStopped = true
         loadingIndicator.activityIndicatorViewStyle = UIActivityIndicatorViewStyle.white
         loadingIndicator.startAnimating()
@@ -63,9 +64,22 @@ class SearchViewController: UIViewController, UICollectionViewDelegate, UICollec
         return true
     }
     
-//    func refreshTableData(notification : NSNotification){
-//        self.getMostRecentBooks()
-//    }
+    func createFilterButton() -> UIBarButtonItem {
+        let button: UIButton = UIButton(type: .system)
+        button.translatesAutoresizingMaskIntoConstraints = false
+        button.setImage(#imageLiteral(resourceName: "filter").withRenderingMode(UIImageRenderingMode.alwaysTemplate), for: .normal)
+        button.setImage(#imageLiteral(resourceName: "filter").withRenderingMode(UIImageRenderingMode.alwaysTemplate), for: .selected)
+        button.setImage(#imageLiteral(resourceName: "filter").withRenderingMode(UIImageRenderingMode.alwaysTemplate), for: .highlighted)
+        
+        button.addTarget(self, action: #selector(self.selectFilters), for: .touchUpInside)
+        button.tintColor = UIColor.black
+        button.frame = CGRect(x: 0, y: 0, width: 30, height: 30)
+        return UIBarButtonItem(customView: button)
+    }
+    
+    func selectFilters(){
+        performSegue(withIdentifier: "filterSegue", sender: self)
+    }
     
     func updateFilterPreferences(notification: NSNotification){
         self.filterContent = []
@@ -78,10 +92,18 @@ class SearchViewController: UIViewController, UICollectionViewDelegate, UICollec
                 self.filterContent.append(filter as String)
             }
         }
+        self.slideDownSearchCollection()
         self.filterCollectionView.reloadData()
     }
     
-    func searchBarTextDidBeginEditing(_ searchBar: UISearchBar) {
+    func searchBarShouldBeginEditing(_ searchBar: UISearchBar) -> Bool {
+        searchBar.setShowsCancelButton(true, animated: true)
+        return true
+    }
+    
+    func searchBarShouldEndEditing(_ searchBar: UISearchBar) -> Bool {
+        searchBar.setShowsCancelButton(false, animated: true)
+        return true
     }
     
     func searchBarTextDidEndEditing(_ searchBar: UISearchBar) {
@@ -94,6 +116,8 @@ class SearchViewController: UIViewController, UICollectionViewDelegate, UICollec
             self.getMostRecentBooks()   // only reload original result set if search had previously been activated
             searchActivated = false
         }
+        self.searchBar.setShowsCancelButton(false, animated: true)
+        self.searchBar.endEditing(true)
     }
     
     func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
@@ -150,14 +174,14 @@ class SearchViewController: UIViewController, UICollectionViewDelegate, UICollec
             let text = self.filterContent[indexPath.item]
             width = estimatedFrameForText(text: text).width + 22
             print(width)
-            return CGSize(width: width, height : 40)
+            return CGSize(width: width, height : 30)
         } else {
             return CGSize(width: 148, height: 215)
         }
     }
     
     private func estimatedFrameForText(text: String) -> CGRect{
-        let size = CGSize(width: 1000, height: 40)
+        let size = CGSize(width: 1000, height: 30)
         let options = NSStringDrawingOptions.usesFontLeading.union(.usesLineFragmentOrigin)
         // Change the font here to Helvetica
         return NSString(string: text).boundingRect(with: size, options: options, attributes: [NSFontAttributeName: UIFont.systemFont(ofSize: 13)], context: nil)
@@ -257,7 +281,11 @@ class SearchViewController: UIViewController, UICollectionViewDelegate, UICollec
     
     func removeFilterSelected(cell: FilterSelectedCollectionViewCell) {
         let indexPath : IndexPath = self.filterCollectionView.indexPath(for: cell)!
+        
         if(self.filterContent.count > 0){
+            if(self.filterContent.count == 1){
+                self.slideUpSearchCollection()  // slide up the search collection view if we are removing the last item in the array
+            }
             self.filterContent.remove(at: indexPath.item)
         }
         self.filterCollectionView.deleteItems(at: [indexPath])
@@ -442,6 +470,25 @@ class SearchViewController: UIViewController, UICollectionViewDelegate, UICollec
                 destination.isCurrentUsersProfile = true
             }
             
+        }
+    }
+    
+    func slideDownSearchCollection(){
+        UIView.animate(withDuration: 0.4, animations: {
+            let frame = self.searchCollectionView.frame
+            self.searchCollectionView.frame = CGRect(x: 0, y: frame.minY + 35, width: frame.width, height: frame.height)
+        }) { (finished) in
+            self.filterCollectionView.isHidden = false
+        }
+    }
+    
+    func slideUpSearchCollection(){
+        self.filterCollectionView.isHidden = true
+        UIView.animate(withDuration: 0.4, animations: {
+            let frame = self.searchCollectionView.frame
+            self.searchCollectionView.frame = CGRect(x: 0, y: frame.minY - 35, width: frame.width, height: frame.height)
+        }) { (finished) in
+            print(finished)
         }
     }
     
