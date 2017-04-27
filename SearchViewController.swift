@@ -8,7 +8,7 @@
 
 import UIKit
 
-class SearchViewController: UIViewController, UICollectionViewDelegate, UICollectionViewDataSource, UISearchBarDelegate, ProfileSelectDelegate, UIGestureRecognizerDelegate, FilterSelectCellDelegate {
+class SearchViewController: UIViewController, UICollectionViewDelegate, UICollectionViewDataSource, UISearchBarDelegate, ProfileSelectDelegate, UIGestureRecognizerDelegate, UICollectionViewDelegateFlowLayout, FilterSelectCellDelegate {
     
     @IBOutlet var filterCollectionView: UICollectionView!
     @IBOutlet var searchCollectionView: UICollectionView!
@@ -143,6 +143,25 @@ class SearchViewController: UIViewController, UICollectionViewDelegate, UICollec
         return filterURL
         
     }
+    
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
+        if(collectionView == filterCollectionView){
+            var width: CGFloat = CGFloat(75)
+            let text = self.filterContent[indexPath.item]
+            width = estimatedFrameForText(text: text).width + 22
+            print(width)
+            return CGSize(width: width, height : 40)
+        } else {
+            return CGSize(width: 148, height: 215)
+        }
+    }
+    
+    private func estimatedFrameForText(text: String) -> CGRect{
+        let size = CGSize(width: 1000, height: 40)
+        let options = NSStringDrawingOptions.usesFontLeading.union(.usesLineFragmentOrigin)
+        // Change the font here to Helvetica
+        return NSString(string: text).boundingRect(with: size, options: options, attributes: [NSFontAttributeName: UIFont.systemFont(ofSize: 13)], context: nil)
+    }
         
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         if(collectionView == searchCollectionView){
@@ -172,6 +191,7 @@ class SearchViewController: UIViewController, UICollectionViewDelegate, UICollec
     func setUpSelectedFilterCells(cell : FilterSelectedCollectionViewCell, indexPath : IndexPath){
         cell.delegate = self
         cell.filterLabel.text = self.filterContent[indexPath.item]
+        cell.filterLabel.sizeToFit()
     }
     
     func setUpSearchCollectionViewCells(cell : BookSearchCollectionViewCell, indexPath : IndexPath){
