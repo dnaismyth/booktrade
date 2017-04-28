@@ -75,15 +75,21 @@ class FilterViewTableViewController: UITableViewController {
         }
     }
     
-    private func setActiveButtonState(button : UIButton){
-        button.setBackgroundColor(color: UIColor.gray, forState: UIControlState.selected)
+    private func setActiveButtonState(button: UIButton){
+        button.setBackgroundColor(color: Constants.COLOR.appColor, forState: UIControlState.selected)
+        button.titleLabel?.textColor = UIColor.white
         button.isSelected = true
+    }
+    
+    private func setNormalButtonState(button: UIButton){
+        button.setBackgroundColor(color: UIColor.white, forState: .normal)
+        button.titleLabel?.textColor = Constants.COLOR.appColor
+        button.isSelected = false
     }
 
     @IBAction func textbookButton(_ sender: UIButton) {
         if(!sender.isSelected){
-            sender.setBackgroundColor(color: UIColor.gray, forState: UIControlState.selected)
-            sender.isSelected = true
+            self.setActiveButtonState(button: sender)
             filterPrefs[Constants.FILTER.textbook] = true as AnyObject?
         } else {
             sender.setBackgroundColor(color: UIColor.white, forState: UIControlState.normal)
@@ -94,23 +100,20 @@ class FilterViewTableViewController: UITableViewController {
     
     @IBAction func freeButton(_ sender: UIButton) {
         if(!sender.isSelected){
-            sender.setBackgroundColor(color: UIColor.gray, forState: UIControlState.selected)
-            sender.isSelected = true
+            self.setActiveButtonState(button: sender)
             filterPrefs[Constants.FILTER.free] = true as AnyObject?
         } else {
-            sender.setBackgroundColor(color: UIColor.white, forState: UIControlState.normal)
-            sender.isSelected = false
+            self.setNormalButtonState(button: sender)
             filterPrefs[Constants.FILTER.free] = false as AnyObject?
         }
     }
+    
     @IBAction func fictionButtonAction(_ sender: UIButton) {
         if(!sender.isSelected){
-            sender.setBackgroundColor(color: UIColor.gray, forState: UIControlState.selected)
-            sender.isSelected = true
+            self.setActiveButtonState(button: sender)
             filterPrefs[Constants.FILTER.fiction] = true as AnyObject?
         } else {
-            sender.setBackgroundColor(color: UIColor.white, forState: UIControlState.normal)
-            sender.isSelected = false
+            self.setNormalButtonState(button: sender)
             filterPrefs[Constants.FILTER.fiction] = false as AnyObject?
         }
     }
@@ -123,41 +126,36 @@ class FilterViewTableViewController: UITableViewController {
             filterPrefs[Constants.FILTER.distance] = distance as AnyObject?
         }
     }
+    
     @IBAction func nonFictionButtonAction(_ sender: UIButton) {
         if(!sender.isSelected){
-            sender.setBackgroundColor(color: UIColor.gray, forState: UIControlState.selected)
-            sender.isSelected = true
+            self.setActiveButtonState(button: sender)
             filterPrefs[Constants.FILTER.nonFiction] = true as AnyObject?
         } else {
-            sender.setBackgroundColor(color: UIColor.white, forState: UIControlState.normal)
-            sender.isSelected = false
+            self.setNormalButtonState(button: sender)
             filterPrefs[Constants.FILTER.nonFiction] = false as AnyObject?
         }
     }
     
     @IBAction func childrensButtonAction(_ sender: UIButton) {
         if(!sender.isSelected){
-            sender.setBackgroundColor(color: UIColor.gray, forState: UIControlState.selected)
-            sender.isSelected = true
+            self.setActiveButtonState(button: sender)
             filterPrefs[Constants.FILTER.children] = true as AnyObject?
         } else {
-            sender.setBackgroundColor(color: UIColor.white, forState: UIControlState.normal)
-            sender.isSelected = false
+            self.setNormalButtonState(button: sender)
             filterPrefs[Constants.FILTER.children] = false as AnyObject?
         }
     }
     
     @IBAction func priceButton(_ sender: UIButton) {
         if(!sender.isSelected){
-            sender.setBackgroundColor(color: UIColor.gray, forState: UIControlState.selected)
-            sender.isSelected = true
+            self.setActiveButtonState(button: sender)
             filterPrefs[Constants.FILTER.price] = true as AnyObject?
             filterPrefs[Constants.FILTER.recent] = false as AnyObject?
             recentlyAddedFilter.isSelected = false
             recentlyAddedFilter.setBackgroundColor(color: UIColor.white, forState: UIControlState.normal)
         } else {
-            sender.setBackgroundColor(color: UIColor.white, forState: UIControlState.normal)
-            sender.isSelected = false
+            self.setNormalButtonState(button: sender)
             filterPrefs[Constants.FILTER.price] = false as AnyObject?
         }
         
@@ -165,15 +163,13 @@ class FilterViewTableViewController: UITableViewController {
     
     @IBAction func recentAddedButton(_ sender: UIButton) {
         if(!sender.isSelected){
-            sender.setBackgroundColor(color: UIColor.gray, forState: UIControlState.selected)
-            sender.isSelected = true
+            self.setActiveButtonState(button: sender)
             filterPrefs[Constants.FILTER.recent] = true as AnyObject?
             filterPrefs[Constants.FILTER.price] = false as AnyObject?
             priceFilter.isSelected = false
             priceFilter.setBackgroundColor(color: UIColor.white, forState: UIControlState.normal)
         } else {
-            sender.setBackgroundColor(color: UIColor.white, forState: UIControlState.normal)
-            sender.isSelected = false
+            self.setNormalButtonState(button: sender)
             filterPrefs[Constants.FILTER.recent] = false as AnyObject?
         }
     }
