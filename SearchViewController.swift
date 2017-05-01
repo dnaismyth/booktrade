@@ -452,6 +452,12 @@ class SearchViewController: UIViewController, UICollectionViewDelegate, UICollec
             }
         }
         
+        if(segue.identifier == "filterSegue"){
+            let destination = segue.destination as! FilterViewTableViewController
+            destination.hidesBottomBarWhenPushed = true
+            destination.automaticallyAdjustsScrollViewInsets = true
+        }
+        
         if(segue.identifier == "profileSegueFromSearch"){
             let destination = segue.destination as! ProfileViewController
             let currentUserId = userDefaults.string(forKey: Constants.USER_DEFAULTS.userIdKey)

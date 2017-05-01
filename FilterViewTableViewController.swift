@@ -14,15 +14,14 @@ class FilterViewTableViewController: UITableViewController {
 
     var priceSelected : Bool = false
     var filterPrefs : [String : AnyObject] = [:]
-    @IBOutlet var textbookFilter: UIButton!
-    @IBOutlet var freeFilter: UIButton!
-    @IBOutlet var priceFilter: UIButton!
-    @IBOutlet var recentlyAddedFilter: UIButton!
     @IBOutlet var filterTableView: UITableView!
-    @IBOutlet var fictionFilter: UIButton!
-    @IBOutlet var nonFictionFilter: UIButton!
-    @IBOutlet var childrensFilter: UIButton!
     @IBOutlet var distanceFilter: UISlider!
+    
+    @IBOutlet var fictionFilter: CustomFilterUIButton!
+    @IBOutlet var freeFilter: CustomFilterUIButton!
+    @IBOutlet var childrensFilter: CustomFilterUIButton!
+    @IBOutlet var textbookFilter: CustomFilterUIButton!
+    @IBOutlet var nonFictionFilter: CustomFilterUIButton!
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -46,6 +45,88 @@ class FilterViewTableViewController: UITableViewController {
     @objc private func resetFilter(){
         filterPrefs = Constants.FILTER.defaultFilter
         userDefaults.set( filterPrefs, forKey: "filter_pref")   // set preferences back to default
+        self.resetButtons()
+        
+    }
+    
+    func resetButtons(){
+        self.setNormalButtonState(button: self.textbookFilter)
+        self.setNormalButtonState(button: self.fictionFilter)
+        self.setNormalButtonState(button: self.nonFictionFilter)
+        self.setNormalButtonState(button: self.childrensFilter)
+        self.setNormalButtonState(button: self.freeFilter)
+        self.distanceFilter.value = 0.0
+    }
+    
+    override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        if let cell = tableView.cellForRow(at: indexPath) {
+            cell.textLabel?.textColor = UIColor.white
+            cell.detailTextLabel?.textColor = UIColor.white
+            cell.backgroundColor = Constants.COLOR.appColor
+            if(cell.reuseIdentifier != nil){
+                switch(cell.reuseIdentifier!){
+                case "sortPrice" :
+                    self.handlePriceCellOnSelect(cell: cell)
+                case "sortRecentlyAdded" :
+                    self.handleRecentlyAddedCellOnSelect(cell: cell)
+                default:
+                    break
+                }
+            }
+        }
+        
+    }
+    
+    override func tableView(_ tableView: UITableView, shouldHighlightRowAt indexPath: IndexPath) -> Bool {
+        let cell = tableView.cellForRow(at: indexPath)
+        if(cell?.restorationIdentifier != nil && (cell?.restorationIdentifier == "sortPrice" || cell?.restorationIdentifier == "sortRecentlyAdded")){
+            return true
+        } else {
+            return false
+        }
+    }
+    
+    override func tableView(_ tableView: UITableView, didHighlightRowAt indexPath: IndexPath) {
+        let cell = tableView.cellForRow(at: indexPath)
+        if(cell?.restorationIdentifier != nil && (cell?.restorationIdentifier == "sortPrice" || cell?.restorationIdentifier == "sortRecentlyAdded")){
+            cell?.textLabel?.textColor = UIColor.white
+            cell?.detailTextLabel?.textColor = UIColor.white
+            cell?.backgroundColor = Constants.COLOR.appColor
+        } else {
+            cell?.backgroundColor = UIColor.white
+        }
+    }
+    
+    override func tableView(_ tableView: UITableView, didUnhighlightRowAt indexPath: IndexPath) {
+        let cell = tableView.cellForRow(at: indexPath)
+        if(cell?.restorationIdentifier != nil && (cell?.restorationIdentifier == "sortPrice" || cell?.restorationIdentifier == "sortRecentlyAdded")){
+            cell?.textLabel?.textColor = UIColor.black
+            cell?.detailTextLabel?.textColor = UIColor.darkGray
+            cell?.backgroundColor = UIColor.white
+        } else {
+            cell?.backgroundColor = UIColor.white
+        }
+    }
+    
+    override func tableView(_ tableView: UITableView, didDeselectRowAt indexPath: IndexPath) {
+        let cell = tableView.cellForRow(at: indexPath)
+        if(cell?.restorationIdentifier != nil && (cell?.restorationIdentifier == "sortPrice" || cell?.restorationIdentifier == "sortRecentlyAdded")){
+            cell?.textLabel?.textColor = UIColor.black
+            cell?.detailTextLabel?.textColor = UIColor.darkGray
+            cell?.backgroundColor = UIColor.white
+        } else {
+            cell?.backgroundColor = UIColor.white
+        }
+    }
+    
+    private func handlePriceCellOnSelect(cell: UITableViewCell){
+        filterPrefs[Constants.FILTER.price] = true as AnyObject?
+        filterPrefs[Constants.FILTER.recent] = false as AnyObject?
+    }
+    
+    private func handleRecentlyAddedCellOnSelect(cell: UITableViewCell){
+        filterPrefs[Constants.FILTER.recent] = true as AnyObject?
+        filterPrefs[Constants.FILTER.price] = false as AnyObject?
     }
     
     private func setButtonStates(){
@@ -59,9 +140,11 @@ class FilterViewTableViewController: UITableViewController {
                 case Constants.FILTER.nonFiction:
                     self.setActiveButtonState(button: self.nonFictionFilter)
                 case Constants.FILTER.price:
-                    self.setActiveButtonState(button: self.priceFilter)
+                    let cell = tableView.dequeueReusableCell(withIdentifier: "sortPrice")
+                    cell?.isSelected = true
                 case Constants.FILTER.recent:
-                    self.setActiveButtonState(button: self.recentlyAddedFilter)
+                    let cell = tableView.dequeueReusableCell(withIdentifier: "sortRecentlyAdded")
+                    cell?.isSelected = true
                 case Constants.FILTER.free:
                     self.setActiveButtonState(button: self.freeFilter)
                 case Constants.FILTER.textbook:
@@ -75,30 +158,33 @@ class FilterViewTableViewController: UITableViewController {
         }
     }
     
-    private func setActiveButtonState(button: UIButton){
+    private func setActiveButtonState(button: CustomFilterUIButton){
         button.setBackgroundColor(color: Constants.COLOR.appColor, forState: UIControlState.selected)
         button.titleLabel?.textColor = UIColor.white
         button.isSelected = true
     }
     
-    private func setNormalButtonState(button: UIButton){
-        button.setBackgroundColor(color: UIColor.white, forState: .normal)
-        button.titleLabel?.textColor = Constants.COLOR.appColor
-        button.isSelected = false
+    private func setNormalButtonState(button: CustomFilterUIButton){
+        if(button.backgroundColor != Constants.COLOR.filterLightBlue){
+            button.setBackgroundColor(color: Constants.COLOR.filterLightBlue, forState: .normal)
+        }
+        button.titleLabel?.textColor = UIColor.white
+        if(button.isSelected){
+            button.isSelected = false
+        }
     }
 
-    @IBAction func textbookButton(_ sender: UIButton) {
+    @IBAction func textbookButton(_ sender: CustomFilterUIButton) {
         if(!sender.isSelected){
             self.setActiveButtonState(button: sender)
             filterPrefs[Constants.FILTER.textbook] = true as AnyObject?
         } else {
-            sender.setBackgroundColor(color: UIColor.white, forState: UIControlState.normal)
-            sender.isSelected = false
+            self.setNormalButtonState(button: sender)
             filterPrefs[Constants.FILTER.textbook] = false as AnyObject?
         }
     }
     
-    @IBAction func freeButton(_ sender: UIButton) {
+    @IBAction func freeButton(_ sender: CustomFilterUIButton) {
         if(!sender.isSelected){
             self.setActiveButtonState(button: sender)
             filterPrefs[Constants.FILTER.free] = true as AnyObject?
@@ -108,7 +194,7 @@ class FilterViewTableViewController: UITableViewController {
         }
     }
     
-    @IBAction func fictionButtonAction(_ sender: UIButton) {
+    @IBAction func fictionButtonAction(_ sender: CustomFilterUIButton) {
         if(!sender.isSelected){
             self.setActiveButtonState(button: sender)
             filterPrefs[Constants.FILTER.fiction] = true as AnyObject?
@@ -127,7 +213,7 @@ class FilterViewTableViewController: UITableViewController {
         }
     }
     
-    @IBAction func nonFictionButtonAction(_ sender: UIButton) {
+    @IBAction func nonFictionButtonAction(_ sender: CustomFilterUIButton) {
         if(!sender.isSelected){
             self.setActiveButtonState(button: sender)
             filterPrefs[Constants.FILTER.nonFiction] = true as AnyObject?
@@ -137,7 +223,7 @@ class FilterViewTableViewController: UITableViewController {
         }
     }
     
-    @IBAction func childrensButtonAction(_ sender: UIButton) {
+    @IBAction func childrensButtonAction(_ sender: CustomFilterUIButton) {
         if(!sender.isSelected){
             self.setActiveButtonState(button: sender)
             filterPrefs[Constants.FILTER.children] = true as AnyObject?
@@ -147,32 +233,32 @@ class FilterViewTableViewController: UITableViewController {
         }
     }
     
-    @IBAction func priceButton(_ sender: UIButton) {
-        if(!sender.isSelected){
-            self.setActiveButtonState(button: sender)
-            filterPrefs[Constants.FILTER.price] = true as AnyObject?
-            filterPrefs[Constants.FILTER.recent] = false as AnyObject?
-            recentlyAddedFilter.isSelected = false
-            recentlyAddedFilter.setBackgroundColor(color: UIColor.white, forState: UIControlState.normal)
-        } else {
-            self.setNormalButtonState(button: sender)
-            filterPrefs[Constants.FILTER.price] = false as AnyObject?
-        }
-        
-    }
+//    @IBAction func priceButton(_ sender: UIButton) {
+//        if(!sender.isSelected){
+//            self.setActiveButtonState(button: sender)
+//            filterPrefs[Constants.FILTER.price] = true as AnyObject?
+//            filterPrefs[Constants.FILTER.recent] = false as AnyObject?
+//            recentlyAddedFilter.isSelected = false
+//            recentlyAddedFilter.setBackgroundColor(color: UIColor.white, forState: UIControlState.normal)
+//        } else {
+//            self.setNormalButtonState(button: sender)
+//            filterPrefs[Constants.FILTER.price] = false as AnyObject?
+//        }
+//        
+//    }
     
-    @IBAction func recentAddedButton(_ sender: UIButton) {
-        if(!sender.isSelected){
-            self.setActiveButtonState(button: sender)
-            filterPrefs[Constants.FILTER.recent] = true as AnyObject?
-            filterPrefs[Constants.FILTER.price] = false as AnyObject?
-            priceFilter.isSelected = false
-            priceFilter.setBackgroundColor(color: UIColor.white, forState: UIControlState.normal)
-        } else {
-            self.setNormalButtonState(button: sender)
-            filterPrefs[Constants.FILTER.recent] = false as AnyObject?
-        }
-    }
+//    @IBAction func recentAddedButton(_ sender: UIButton) {
+//        if(!sender.isSelected){
+//            self.setActiveButtonState(button: sender)
+//            filterPrefs[Constants.FILTER.recent] = true as AnyObject?
+//            filterPrefs[Constants.FILTER.price] = false as AnyObject?
+//            priceFilter.isSelected = false
+//            priceFilter.setBackgroundColor(color: UIColor.white, forState: UIControlState.normal)
+//        } else {
+//            self.setNormalButtonState(button: sender)
+//            filterPrefs[Constants.FILTER.recent] = false as AnyObject?
+//        }
+//    }
 
     @IBAction func saveFilter(_ sender: UIButton) {
         // Check if there are any changes from the default filter
