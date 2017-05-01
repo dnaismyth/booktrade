@@ -14,6 +14,7 @@ class FilterViewTableViewController: UITableViewController {
 
     var priceSelected : Bool = false
     var filterPrefs : [String : AnyObject] = [:]
+    var filterButtons: [CustomFilterUIButton] = []
     @IBOutlet var filterTableView: UITableView!
     @IBOutlet var distanceFilter: UISlider!
     
@@ -25,6 +26,7 @@ class FilterViewTableViewController: UITableViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        self.addButtonsToList() // add all the filters to list
         self.distanceFilter.isContinuous = false
         filterPrefs = userDefaults.dictionary(forKey: "filter_pref") as! [String : AnyObject]
         print(filterPrefs)
@@ -33,7 +35,7 @@ class FilterViewTableViewController: UITableViewController {
         filterTableView.dataSource = self
         self.navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Reset", style: .plain, target: self, action: #selector(self.resetFilter))
         // Uncomment the following line to preserve selection between presentations
-        // self.clearsSelectionOnViewWillAppear = false
+        self.clearsSelectionOnViewWillAppear = false
 
     }
 
@@ -42,20 +44,35 @@ class FilterViewTableViewController: UITableViewController {
         // Dispose of any resources that can be recreated.
     }
     
+    func addButtonsToList(){
+        filterButtons.append(fictionFilter)
+        filterButtons.append(freeFilter)
+        filterButtons.append(childrensFilter)
+        filterButtons.append(textbookFilter)
+        filterButtons.append(nonFictionFilter)
+    }
+    
     @objc private func resetFilter(){
         filterPrefs = Constants.FILTER.defaultFilter
         userDefaults.set( filterPrefs, forKey: "filter_pref")   // set preferences back to default
-        self.resetButtons()
+        for button in filterButtons {
+            if button.isSelected {
+                button.isSelected = false
+                button.setBackgroundColor(color: Constants.COLOR.filterLightBlue, forState: .normal)
+            }
+        }
+        if let selectedRows = (self.filterTableView.indexPathsForSelectedRows){
+            for selectedIndex in selectedRows {
+                print(selectedIndex)
+                let cell = filterTableView.cellForRow(at: selectedIndex)
+                cell?.textLabel?.textColor = UIColor.black
+                cell?.detailTextLabel?.textColor = UIColor.darkGray
+                cell?.backgroundColor = UIColor.white
+                filterTableView.deselectRow(at: selectedIndex, animated: true)
+            }
+        }
         
-    }
-    
-    func resetButtons(){
-        self.setNormalButtonState(button: self.textbookFilter)
-        self.setNormalButtonState(button: self.fictionFilter)
-        self.setNormalButtonState(button: self.nonFictionFilter)
-        self.setNormalButtonState(button: self.childrensFilter)
-        self.setNormalButtonState(button: self.freeFilter)
-        self.distanceFilter.value = 0.0
+        distanceFilter.value = 0.0
     }
     
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
@@ -165,13 +182,9 @@ class FilterViewTableViewController: UITableViewController {
     }
     
     private func setNormalButtonState(button: CustomFilterUIButton){
-        if(button.backgroundColor != Constants.COLOR.filterLightBlue){
-            button.setBackgroundColor(color: Constants.COLOR.filterLightBlue, forState: .normal)
-        }
+        button.setBackgroundColor(color: Constants.COLOR.filterLightBlue, forState: .normal)
         button.titleLabel?.textColor = UIColor.white
-        if(button.isSelected){
-            button.isSelected = false
-        }
+        button.isSelected = false
     }
 
     @IBAction func textbookButton(_ sender: CustomFilterUIButton) {
