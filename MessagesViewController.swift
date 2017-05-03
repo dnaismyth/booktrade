@@ -16,6 +16,12 @@ class MessagesViewController: UIViewController, UITableViewDataSource, UITableVi
     var convoContent : NSArray = []
     var isRecipientView : Bool = true
     var selectedCell : ConversationTableViewCell?
+    
+    // Pagination Variables
+    var pageNum : Int = 0
+    var numCells : Int = 0
+    var numBooksInResults : Int?
+    var reachedEndOfBookResults : Bool = false
 
     @IBOutlet weak var messageTableView: UITableView!
     @IBOutlet var messageTypeSegmentControl: SegmentedControl!

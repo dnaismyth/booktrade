@@ -11,6 +11,8 @@ import AVFoundation
 
 class ScanViewController: UIViewController, AVCaptureMetadataOutputObjectsDelegate, UIImagePickerControllerDelegate, UINavigationControllerDelegate, ScanOrCameraPopupViewDelegate, BookConfirmationPopupViewDelegate {
     
+    var previousViewControllerIndex: Int? // default, return to search
+    
     let userDefaults = Foundation.UserDefaults.standard
 
     var scanOrCameraPopup : ScanOrCameraPopupView!
@@ -54,13 +56,26 @@ class ScanViewController: UIViewController, AVCaptureMetadataOutputObjectsDelega
     override func viewDidLoad() {
         super.viewDidLoad()
         self.showStatusPopup()
+        self.navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Cancel", style: .plain, target: self, action: #selector(self.cancelAddingBookPosting))
         //self.setupScanner()
         // Do any additional setup after loading the view.
+    }
+    
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        if(previousViewControllerIndex == nil){
+            previousViewControllerIndex = 0;
+        }
+        
     }
 
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
+    }
+    
+    func cancelAddingBookPosting(){
+        self.tabBarController?.selectedIndex = self.previousViewControllerIndex!    // on cancel, go back to the previously viewed controller
     }
     
     // MARK: - AVCaptureMetadataOutputObjectsDelegate Methods

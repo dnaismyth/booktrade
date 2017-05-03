@@ -52,6 +52,8 @@ class FilterViewTableViewController: UITableViewController {
         filterButtons.append(nonFictionFilter)
     }
     
+    // Reset Filters back to their normal state.  This will remove the previous filter preferences and replace them
+    // With the default filter set in Constants.
     @objc private func resetFilter(){
         filterPrefs = Constants.FILTER.defaultFilter
         userDefaults.set( filterPrefs, forKey: "filter_pref")   // set preferences back to default
@@ -245,33 +247,6 @@ class FilterViewTableViewController: UITableViewController {
             filterPrefs[Constants.FILTER.children] = false as AnyObject?
         }
     }
-    
-//    @IBAction func priceButton(_ sender: UIButton) {
-//        if(!sender.isSelected){
-//            self.setActiveButtonState(button: sender)
-//            filterPrefs[Constants.FILTER.price] = true as AnyObject?
-//            filterPrefs[Constants.FILTER.recent] = false as AnyObject?
-//            recentlyAddedFilter.isSelected = false
-//            recentlyAddedFilter.setBackgroundColor(color: UIColor.white, forState: UIControlState.normal)
-//        } else {
-//            self.setNormalButtonState(button: sender)
-//            filterPrefs[Constants.FILTER.price] = false as AnyObject?
-//        }
-//        
-//    }
-    
-//    @IBAction func recentAddedButton(_ sender: UIButton) {
-//        if(!sender.isSelected){
-//            self.setActiveButtonState(button: sender)
-//            filterPrefs[Constants.FILTER.recent] = true as AnyObject?
-//            filterPrefs[Constants.FILTER.price] = false as AnyObject?
-//            priceFilter.isSelected = false
-//            priceFilter.setBackgroundColor(color: UIColor.white, forState: UIControlState.normal)
-//        } else {
-//            self.setNormalButtonState(button: sender)
-//            filterPrefs[Constants.FILTER.recent] = false as AnyObject?
-//        }
-//    }
 
     @IBAction func saveFilter(_ sender: UIButton) {
         // Check if there are any changes from the default filter

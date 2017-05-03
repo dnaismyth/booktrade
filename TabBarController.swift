@@ -11,6 +11,7 @@ import UIKit
 class TabBarController: UITabBarController, UITabBarControllerDelegate {
     
     let userDefaults = Foundation.UserDefaults.standard
+    var currentSelectedIndex: Int?
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -32,6 +33,14 @@ class TabBarController: UITabBarController, UITabBarControllerDelegate {
     
     }
     
+    func tabBarController(_ tabBarController: UITabBarController, shouldSelect viewController: UIViewController) -> Bool {
+        self.currentSelectedIndex = tabBarController.selectedIndex
+        if(currentSelectedIndex != nil){
+            print(self.currentSelectedIndex)
+        }
+        return true
+    }
+    
     func tabBarController(_ tabBarController: UITabBarController, didSelect viewController: UIViewController) {
         if(viewController.restorationIdentifier == "profileNavigationController"){
             let profileNavController = viewController as! UINavigationController
@@ -50,6 +59,14 @@ class TabBarController: UITabBarController, UITabBarControllerDelegate {
             let searchNavController = viewController as! UINavigationController
             let searchView : SearchViewController = searchNavController.viewControllers[0] as! SearchViewController
             searchView.getMostRecentBooks()
+        }
+        
+        if(viewController.restorationIdentifier == "scanViewController"){
+            let scanNavController = viewController as! UINavigationController
+            let scanView: ScanViewController = scanNavController.viewControllers[0] as! ScanViewController
+            if(self.currentSelectedIndex != nil){
+                scanView.previousViewControllerIndex = self.currentSelectedIndex!
+            }
         }
 
     }

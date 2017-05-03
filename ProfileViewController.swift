@@ -208,9 +208,6 @@ class ProfileViewController: UIViewController, UICollectionViewDelegate, UIColle
             }
             
             if bookCategory.contains("TEXTBOOK"){
-                let textbookLabel = cell.textbookView.subviews.first as? UILabel
-                textbookLabel?.diagonalLabel()
-                cell.textbookView.bringSubview(toFront: textbookLabel!)
                 cell.textbookView.isHidden = false
             }
         } else if let price = book["price"] as? Int {
@@ -323,7 +320,9 @@ class ProfileViewController: UIViewController, UICollectionViewDelegate, UIColle
     
     @IBAction func unwindToProfile(segue: UIStoryboardSegue) {
         if let changeAvatarView = segue.source as? ChangeAvatarViewController {
-            self.avatarImage.image = changeAvatarView.imageView.image
+            if(changeAvatarView.imageView.image != nil){
+                self.avatarImage.image = changeAvatarView.imageView.image
+            }
         }
     }
     

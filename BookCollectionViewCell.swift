@@ -15,7 +15,9 @@ class BookCollectionViewCell: UICollectionViewCell {
     @IBOutlet var bookTitleLabel: UILabel!
     @IBOutlet var priceLabel: UILabel!
     @IBOutlet var uploadedLabel: UILabel!
-    @IBOutlet var textbookView: TextbookUIView!
+    @IBOutlet var textbookView: UIView!
+    @IBOutlet var bookBanner: UIImageView!
+    @IBOutlet var textbookImage: UIImageView!
     
     // Book Author
     var author : String?
@@ -55,6 +57,8 @@ class BookCollectionViewCell: UICollectionViewCell {
     override func awakeFromNib() {
         super.awakeFromNib()
         self.textbookView.isHidden = true
+        self.bookBanner.tintColor = Constants.COLOR.foxOrange
+        self.textbookImage.tintColor = UIColor.white
         self.dropShadow()
         //self.coverImage.dropShadow()
         //self.coverImage.cornerRadius()

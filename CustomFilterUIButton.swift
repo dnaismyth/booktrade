@@ -21,4 +21,8 @@ import UIKit
         self.imageView?.tintColor = iconTint
         self.contentMode = .scaleAspectFit
     }
+    
+    override func awakeFromNib() {
+        self.backgroundColor = Constants.COLOR.filterLightBlue
+    }
 }

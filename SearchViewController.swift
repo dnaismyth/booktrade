@@ -219,7 +219,7 @@ class SearchViewController: UIViewController, UICollectionViewDelegate, UICollec
     }
     
     func setUpSearchCollectionViewCells(cell : BookSearchCollectionViewCell, indexPath : IndexPath){
-        cell.bookBanner.isHidden = true
+        cell.textbookView.isHidden = true
         let book = self.bookContent[indexPath.item]
         let owner = book["owner"] as! [String : AnyObject]
         cell.delegate = self
@@ -261,9 +261,7 @@ class SearchViewController: UIViewController, UICollectionViewDelegate, UICollec
                 cell.priceLabel.createFreeLabel()
             }
             if bookCategory.contains("TEXTBOOK"){
-                cell.bookBanner.tintColor = Constants.COLOR.foxOrange
-                cell.bookBanner.dropShadow()
-                cell.bookBanner.isHidden = false
+                cell.textbookView.isHidden = false
             } 
         } else if let price = book["price"] as? Int {
             cell.priceLabel.text = "$".appending(String(describing: price)) // todo: in future update to use ISO codes

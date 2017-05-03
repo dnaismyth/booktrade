@@ -21,9 +21,10 @@ class BookSearchCollectionViewCell: UICollectionViewCell, UIGestureRecognizerDel
     @IBOutlet var ownerAvatar: UIButton!
     @IBOutlet var priceLabel: UILabel!
     @IBOutlet var uploadedTime: UILabel!
-    @IBOutlet var bookBanner: UIImageView!
-    //@IBOutlet var textbookView: TextbookUIView!
     @IBOutlet var labelView: UIView!
+    @IBOutlet var textbookView: UIView!
+    @IBOutlet var bookBannerImage: UIImageView!
+    @IBOutlet var textbookImage: UIImageView!
     
     var delegate:ProfileSelectDelegate!
 
@@ -69,7 +70,9 @@ class BookSearchCollectionViewCell: UICollectionViewCell, UIGestureRecognizerDel
     
     override func awakeFromNib() {
         super.awakeFromNib()
-        self.bookBanner.isHidden = true
+        self.textbookView.isHidden = false
+        self.bookBannerImage.tintColor = Constants.COLOR.foxOrange
+        self.textbookImage.tintColor = UIColor.white
         self.labelView.dropShadow()
         //self.coverImage.dropShadow()
         //self.labelView.dropShadow()

@@ -148,7 +148,6 @@ class ChangeAvatarViewController: UIViewController, UIImagePickerControllerDeleg
     // MARK : - Navigation
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         if segue.identifier == "unwindToProfile" {
-            print(imageSelected)
             if(imageSelected){
                 let profileView = segue.destination as! ProfileViewController
                 profileView.avatarImage.image = self.imageView.image
@@ -164,6 +163,7 @@ class ChangeAvatarViewController: UIViewController, UIImagePickerControllerDeleg
     }
     
     @IBAction func cancelButton(_ sender: UIButton) {
+        self.imageSelected = false
         if(segueFromController == "ProfileController"){
             performSegue(withIdentifier: "unwindToProfile", sender: self)
         }
