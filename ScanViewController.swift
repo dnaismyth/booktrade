@@ -354,6 +354,7 @@ class ScanViewController: UIViewController, AVCaptureMetadataOutputObjectsDelega
         
     }
     
+    
     /*
     // MARK: - Navigation
 

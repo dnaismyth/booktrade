@@ -7,10 +7,32 @@
 //
 
 import UIKit
+import DZNEmptyDataSet
 
-class ProfileViewController: UIViewController, UICollectionViewDelegate, UICollectionViewDataSource, UIPopoverPresentationControllerDelegate,  UIGestureRecognizerDelegate, BookStatusPopupDelegate {
+class ProfileViewController: UIViewController, UICollectionViewDelegate, UICollectionViewDataSource, UIPopoverPresentationControllerDelegate,  UIGestureRecognizerDelegate, BookStatusPopupDelegate, DZNEmptyDataSetSource, DZNEmptyDataSetDelegate {
     
     let userDefaults = Foundation.UserDefaults.standard
+    
+    /**********************************************/
+    // ***Variables for empty collection views*** //
+    /**********************************************/
+    // Current user titles
+    var currentUserSoldTitle: String = "You have not yet sold any books."
+    var currentUserSoldSubTitle: String = "Press and hold down on one of your available books to update it's status."
+    var currentUserAvailableTitle: String = "You currently have no books available."
+    var currentUserAvailableSubTitle: String = "We got you.  Tap below to add a new one."
+    
+    // Alternate user titles
+    var userSoldTitle: String = "This user has not yet sold any books."
+    var userSoldSubTitle: String = "That's okay.  We know they are hard to give away."
+    var userAvailableTitle: String = "This user does not have any books for sale."
+    var userAvailableSubTitle: String = "Hoarder."
+    
+    // Titles that will be used to display in the empty data set view
+    var emptySubTitle: String?
+    var emptyTitle: String?
+    var showAddNewBookButton: Bool = false
+    
     
     var userId : String?    // id of the user's profile in view
     var bookStatusPopup : BookStatusPopupView!
@@ -45,6 +67,8 @@ class ProfileViewController: UIViewController, UICollectionViewDelegate, UIColle
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        self.bookCollectionView.emptyDataSetSource = self
+        self.bookCollectionView.emptyDataSetDelegate = self
         self.setupSegmentedControl(index: 0)
            NotificationCenter.default.addObserver(self, selector: #selector(self.profileUpdated(notification:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.profileUpdated), object: nil)
         self.bookCollectionView.delegate = self
@@ -78,9 +102,13 @@ class ProfileViewController: UIViewController, UICollectionViewDelegate, UIColle
         bioLabel.sizeToFit()
         userNameLabel.text = self.userName
         locationLabel.text = self.userLocation
+        self.emptySubTitle = self.userAvailableSubTitle
+        self.emptyTitle = self.userAvailableTitle
     }
     
     func loadCurrentUsersProfile(){
+        self.emptySubTitle = self.currentUserAvailableSubTitle
+        self.emptyTitle = self.currentUserAvailableTitle
         if let avatarUrl : String = userDefaults.string(forKey: Constants.USER_DEFAULTS.userAvatar){
             self.setAvatarImage(imageUrl: avatarUrl, imageView: self.avatarImage)
         }
@@ -308,13 +336,37 @@ class ProfileViewController: UIViewController, UICollectionViewDelegate, UIColle
         switch sender.selectedSegmentIndex {
         case 0:
             self.loadUserAvailableBooks(userId: self.userId!)
+            self.setEmptyDataSetTitlesForAvailableBooks()
             break
         case 1:
             // Load unavailable books
             self.loadUserUnavailableBooks(userId: self.userId!)
+            self.setEmptyDataSetTitlesForBooksSold()
             break
         default:
             break
+        }
+    }
+    
+    // Set the titles to be displayed in the empty dataset
+    func setEmptyDataSetTitlesForAvailableBooks(){
+        if(isCurrentUsersProfile)!{
+            self.showAddNewBookButton = true
+            self.emptyTitle = self.currentUserAvailableTitle
+            self.emptySubTitle = self.currentUserAvailableSubTitle
+        } else {
+            self.emptyTitle = self.userAvailableTitle
+            self.emptySubTitle = self.userAvailableSubTitle
+        }
+    }
+    
+    func setEmptyDataSetTitlesForBooksSold(){
+        if(isCurrentUsersProfile)!{
+            self.emptyTitle = self.currentUserSoldTitle
+            self.emptySubTitle = self.currentUserSoldSubTitle
+        } else {
+            self.emptyTitle = self.userSoldTitle
+            self.emptyTitle = self.userSoldSubTitle
         }
     }
     
@@ -431,6 +483,50 @@ class ProfileViewController: UIViewController, UICollectionViewDelegate, UIColle
         self.numCells = 0
         self.numBooksInResults = 0
         self.reachedEndOfBookResults = false
+    }
+    
+    func image(forEmptyDataSet scrollView: UIScrollView!) -> UIImage! {
+        return UIImage(named: "textbook")
+    }
+    
+    func title(forEmptyDataSet scrollView: UIScrollView!) -> NSAttributedString! {
+        let text = self.emptyTitle
+        let attribs = [
+            NSFontAttributeName: Constants.FONT.helvetica18,
+            NSForegroundColorAttributeName: UIColor.darkGray
+        ]
+        
+        return NSAttributedString(string: text!, attributes: attribs)
+    }
+    
+    func description(forEmptyDataSet scrollView: UIScrollView!) -> NSAttributedString! {
+        let text = self.emptySubTitle
+        
+        let para = NSMutableParagraphStyle()
+        para.lineBreakMode = NSLineBreakMode.byWordWrapping
+        para.alignment = NSTextAlignment.center
+        
+        let attribs = [
+            NSFontAttributeName: Constants.FONT.helvetica14,
+            NSForegroundColorAttributeName: UIColor.lightGray,
+            NSParagraphStyleAttributeName: para
+        ]
+        
+        return NSAttributedString(string: text!, attributes: attribs)
+    }
+    
+    func buttonTitle(forEmptyDataSet scrollView: UIScrollView!, for state: UIControlState) -> NSAttributedString! {
+        if(self.showAddNewBookButton){
+            let text = "Tap here to add a new one."
+            let attribs = [
+                NSFontAttributeName: UIFont.boldSystemFont(ofSize: 16),
+                NSForegroundColorAttributeName: view.tintColor
+                ] as [String : Any]
+            
+            return NSAttributedString(string: text, attributes: attribs)
+        }
+        
+        return NSAttributedString()
     }
 
     /*

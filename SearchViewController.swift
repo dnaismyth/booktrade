@@ -7,8 +7,9 @@
 //
 
 import UIKit
-
-class SearchViewController: UIViewController, UICollectionViewDelegate, UICollectionViewDataSource, UISearchBarDelegate, ProfileSelectDelegate, UIGestureRecognizerDelegate, UICollectionViewDelegateFlowLayout, FilterSelectCellDelegate {
+import DZNEmptyDataSet
+    
+class SearchViewController: UIViewController, UICollectionViewDelegate, UICollectionViewDataSource, UISearchBarDelegate, ProfileSelectDelegate, UIGestureRecognizerDelegate, UICollectionViewDelegateFlowLayout, FilterSelectCellDelegate, DZNEmptyDataSetSource, DZNEmptyDataSetDelegate{
     
     @IBOutlet var filterCollectionView: UICollectionView!
     @IBOutlet var searchCollectionView: UICollectionView!
@@ -31,6 +32,9 @@ class SearchViewController: UIViewController, UICollectionViewDelegate, UICollec
     var numBooksInResults : Int?
     var reachedEndOfBookResults : Bool = false
     
+    // Flag for empty results
+    var emptyResults: Bool = false
+    
     var cellTappedForProfileView : BookSearchCollectionViewCell?
     let avatarGestureRecognizer = UITapGestureRecognizer(target: self, action: #selector(avatarTapped(tapGestureRecognizer:)))
     let ownerNameGestureRecognizer = UITapGestureRecognizer(target : self, action: #selector(ownerNameTapped(tapGestureRecognizer:)))
@@ -45,6 +49,8 @@ class SearchViewController: UIViewController, UICollectionViewDelegate, UICollec
         self.searchBar.delegate = self
         self.searchCollectionView.delegate = self
         self.searchCollectionView.dataSource = self
+        self.searchCollectionView.emptyDataSetDelegate = self
+        self.searchCollectionView.emptyDataSetSource = self
         self.filterCollectionView.delegate = self
         self.filterCollectionView.dataSource = self
         avatarGestureRecognizer.delegate = self
@@ -357,7 +363,7 @@ class SearchViewController: UIViewController, UICollectionViewDelegate, UICollec
                         print(self.numCells)
                     }
                 } else {
-                    //TODO: show an empty screen as no results have been found
+                    self.emptyResults = true
                 }
                 
                 self.flagReachedEndOfBookResultContent()
@@ -392,7 +398,7 @@ class SearchViewController: UIViewController, UICollectionViewDelegate, UICollec
                         print(self.numCells)
                     }
                 } else {
-                    //TODO: Show an empty screen as no results have been found
+                    self.emptyResults = true
                 }
                 
                 self.flagReachedEndOfBookResultContent()
@@ -530,4 +536,35 @@ class SearchViewController: UIViewController, UICollectionViewDelegate, UICollec
     }
     
     @IBAction func unwindToSearch(segue: UIStoryboardSegue) {}
+    
+    func image(forEmptyDataSet scrollView: UIScrollView!) -> UIImage! {
+        return UIImage(named: "textbook")
+    }
+    
+    func title(forEmptyDataSet scrollView: UIScrollView!) -> NSAttributedString! {
+        let text = "We weren't able to find any results."
+        let attribs = [
+            NSFontAttributeName: Constants.FONT.helvetica18,
+            NSForegroundColorAttributeName: UIColor.darkGray
+        ]
+        
+        return NSAttributedString(string: text, attributes: attribs)
+    }
+    
+    func description(forEmptyDataSet scrollView: UIScrollView!) -> NSAttributedString! {
+        let text = "Must be a rare one."
+        
+        let para = NSMutableParagraphStyle()
+        para.lineBreakMode = NSLineBreakMode.byWordWrapping
+        para.alignment = NSTextAlignment.center
+        
+        let attribs = [
+            NSFontAttributeName: Constants.FONT.helvetica14,
+            NSForegroundColorAttributeName: UIColor.lightGray,
+            NSParagraphStyleAttributeName: para
+        ]
+        
+        return NSAttributedString(string: text, attributes: attribs)
+    }
+
 }

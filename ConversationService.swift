@@ -16,7 +16,9 @@ class ConversationService {
     func getRecipientConversations(page : String, size : String, token : String, completed : @escaping FinishedFetchingData){
         let url : String = Constants.API.getRecipientConversations.appending("?page=").appending(page).appending("&size=").appending(size)
         GetRequest().HTTPGet(getUrl: url, token: token) { (dictionary) in
-            completed(dictionary)
+            OperationQueue.main.addOperation {
+                completed(dictionary)
+            }
         }
     }
     
@@ -24,7 +26,9 @@ class ConversationService {
     func getInitiatorConversations(page : String, size : String, token : String, completed : @escaping FinishedFetchingData){
         let url : String = Constants.API.getInitiatorConversations.appending("?page=").appending(page).appending("&size=").appending(size)
         GetRequest().HTTPGet(getUrl: url, token: token) { (dictionary) in
-            completed(dictionary)
+            OperationQueue.main.addOperation {
+                completed(dictionary)
+            }
         }
     }
     

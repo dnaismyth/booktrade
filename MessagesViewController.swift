@@ -7,8 +7,9 @@
 //
 
 import UIKit
+import DZNEmptyDataSet
 
-class MessagesViewController: UIViewController, UITableViewDataSource, UITableViewDelegate {
+class MessagesViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, DZNEmptyDataSetSource, DZNEmptyDataSetDelegate {
     
     let userDefaults = Foundation.UserDefaults.standard
     
@@ -33,6 +34,8 @@ class MessagesViewController: UIViewController, UITableViewDataSource, UITableVi
         self.messageTableView.dataSource = self
         self.messageTableView.tableHeaderView = nil
         self.messageTableView.tableFooterView = UIView()
+        self.messageTableView.emptyDataSetSource = self
+        self.messageTableView.emptyDataSetDelegate = self
         //self.automaticallyAdjustsScrollViewInsets = false
         // Do any additional setup after loading the view.
     }
@@ -174,6 +177,36 @@ class MessagesViewController: UIViewController, UITableViewDataSource, UITableVi
             chatController.conversationBookId = selectedCell?.convoBookId!
             chatController.recipientName = selectedCell?.receivedFrom.text!
         }
+    }
+    
+    func image(forEmptyDataSet scrollView: UIScrollView!) -> UIImage! {
+        return UIImage(named: "textbook")
+    }
+    
+    func title(forEmptyDataSet scrollView: UIScrollView!) -> NSAttributedString! {
+        let text = "No Conversations yet."
+        let attribs = [
+            NSFontAttributeName: Constants.FONT.helvetica18,
+            NSForegroundColorAttributeName: UIColor.darkGray
+        ]
+        
+        return NSAttributedString(string: text, attributes: attribs)
+    }
+    
+    func description(forEmptyDataSet scrollView: UIScrollView!) -> NSAttributedString! {
+        let text = "Liven things up a little.  Start a conversation by commenting on a book you might be interested in."
+        
+        let para = NSMutableParagraphStyle()
+        para.lineBreakMode = NSLineBreakMode.byWordWrapping
+        para.alignment = NSTextAlignment.center
+        
+        let attribs = [
+            NSFontAttributeName: Constants.FONT.helvetica14,
+            NSForegroundColorAttributeName: UIColor.lightGray,
+            NSParagraphStyleAttributeName: para
+        ]
+        
+        return NSAttributedString(string: text, attributes: attribs)
     }
 
 }

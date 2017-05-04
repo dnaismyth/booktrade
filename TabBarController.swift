@@ -35,9 +35,6 @@ class TabBarController: UITabBarController, UITabBarControllerDelegate {
     
     func tabBarController(_ tabBarController: UITabBarController, shouldSelect viewController: UIViewController) -> Bool {
         self.currentSelectedIndex = tabBarController.selectedIndex
-        if(currentSelectedIndex != nil){
-            print(self.currentSelectedIndex)
-        }
         return true
     }
     
