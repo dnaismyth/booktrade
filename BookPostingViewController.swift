@@ -67,6 +67,7 @@ class BookPostingViewController: UIViewController, UITextFieldDelegate {
 //        }
     }
     
+    
     func textFieldDidChange(priceField: UITextField) {
         let text = self.priceField.text!.replacingOccurrences(of:currencyFormatter.currencySymbol, with: "").replacingOccurrences(of: currencyFormatter.groupingSeparator, with: "").replacingOccurrences(of: currencyFormatter.decimalSeparator, with: "")
         print(text)

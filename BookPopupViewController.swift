@@ -7,8 +7,9 @@
 //
 
 import UIKit
+import DZNEmptyDataSet
 
-class BookPopupViewController: UIViewController, UITextViewDelegate, UIPopoverPresentationControllerDelegate {
+class BookPopupViewController: UIViewController, UITextViewDelegate, UIPopoverPresentationControllerDelegate, UICollectionViewDelegate, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout, DZNEmptyDataSetSource, DZNEmptyDataSetDelegate {
     
     // MARK: - Properties
     let userDefaults = Foundation.UserDefaults.standard
@@ -16,6 +17,7 @@ class BookPopupViewController: UIViewController, UITextViewDelegate, UIPopoverPr
     var segueFromController : String?
 
     // Passed through from previous view controller
+    var categoriesToPass: [String]?
     var authorToPass : String?
     var titleToPass : String?
     var coverImageToPass : UIImage?
@@ -27,6 +29,7 @@ class BookPopupViewController: UIViewController, UITextViewDelegate, UIPopoverPr
     var bookCondition : String?
     var ownerAvatarToPass : String?
     var currentBookId : Int?
+    var bookCategories: [String] = []
     let commentTextPlaceholder : String = "Interested?  Send a message..."
     
     @IBOutlet weak var bookCoverImage: UIImageView!
@@ -34,29 +37,86 @@ class BookPopupViewController: UIViewController, UITextViewDelegate, UIPopoverPr
     @IBOutlet weak var authorLabel: UILabel!
     @IBOutlet weak var priceLabel: UILabel!
     @IBOutlet weak var createdDateLabel: UILabel!
-    @IBOutlet weak var editButton: UIButton!
     @IBOutlet weak var commentTextView: UITextView!
     @IBOutlet weak var sendCommentButton: UIButton!
-
+    @IBOutlet var bookCategoryCollectionView: UICollectionView!
+    
     override func viewDidLoad() {
         super.viewDidLoad()
+        self.setBookInfoData()  // set book data
+        self.bookCategoryCollectionView.delegate = self
+        self.bookCategoryCollectionView.dataSource = self
+        self.bookCategoryCollectionView.emptyDataSetSource = self
+        self.bookCategoryCollectionView.emptyDataSetDelegate = self
         commentTextView.delegate = self
         commentTextView.text = self.commentTextPlaceholder
         commentTextView.textColor = UIColor.lightGray
+        commentTextView.becomeFirstResponder()
         let currUserId : String = userDefaults.string(forKey: Constants.USER_DEFAULTS.userIdKey)!
-        if(ownerIdToPass != Int(currUserId)){
-            editButton.isHidden = true      // hide the edit button if book does not belong to current user
+        if(ownerIdToPass == Int(currUserId)){
+            self.navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .edit, target: self, action: #selector(editBookPosting))
         }
+        
+        // Move views up when keyboard is showing.
+        NotificationCenter.default.addObserver(self, selector: #selector(self.keyboardWillShow), name: NSNotification.Name.UIKeyboardWillShow, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(self.keyboardWillHide), name: NSNotification.Name.UIKeyboardWillHide, object: nil)
         // Do any additional setup after loading the view.
     }
     
     override func viewDidAppear(_ animated: Bool) {
-        self.setBookInfoData()  // set book data
     }
 
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
+    }
+    
+    func editBookPosting(){
+        print("Edit book posting!")
+    }
+    
+    func keyboardWillShow(notification: NSNotification) {
+        if let keyboardSize = (notification.userInfo?[UIKeyboardFrameEndUserInfoKey] as? NSValue)?.cgRectValue {
+            if self.view.frame.origin.y == 0{
+                self.view.frame.origin.y -= (keyboardSize.height)
+            }
+        }
+    }
+    
+    func keyboardWillHide(notification: NSNotification) {
+        if let keyboardSize = (notification.userInfo?[UIKeyboardFrameEndUserInfoKey] as? NSValue)?.cgRectValue {
+            if self.view.frame.origin.y != 0{
+                self.view.frame.origin.y += (keyboardSize.height)
+            }
+        }
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+        return self.bookCategories.count
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "categoryTagCell", for: indexPath) as! TagCollectionViewCell
+        let tag: String = self.bookCategories[indexPath.item]
+        print(tag)
+        cell.tagLabel.text = "#".appending(tag)
+        cell.tagLabel.sizeToFit()
+        return cell
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
+            var width: CGFloat = CGFloat(75)
+            let text = self.bookCategories[indexPath.item]
+            width = estimatedFrameForText(text: text).width + 22
+            print(width)
+            return CGSize(width: width, height : 35)
+    }
+    
+    private func estimatedFrameForText(text: String) -> CGRect{
+        let size = CGSize(width: 1000, height: 35)
+        let options = NSStringDrawingOptions.usesFontLeading.union(.usesLineFragmentOrigin)
+        // Change the font here to Helvetica
+        return NSString(string: text).boundingRect(with: size, options: options, attributes: [NSFontAttributeName: Constants.FONT.helvetica14], context: nil)
     }
     
     func textViewDidBeginEditing(_ textView: UITextView) {
@@ -100,18 +160,10 @@ class BookPopupViewController: UIViewController, UITextViewDelegate, UIPopoverPr
         if(coverImageToPass != nil){
             self.bookCoverImage.image = coverImageToPass!
         }
-    }
-    // MARK: - Navigation
-    
-    @IBAction func exitBookPopup(_ sender: UIButton) {
-        if segueFromController! == "SearchViewController"{
-            
-            self.performSegue(withIdentifier: "unwindToSearch", sender: nil)
-            
-        }
-        else if segueFromController! == "ProfileViewController"{
-            self.performSegue(withIdentifier: "unwindToProfile", sender: nil)
-            
+        
+        
+        if(categoriesToPass != nil){
+            self.bookCategories = categoriesToPass!
         }
     }
     
@@ -196,6 +248,33 @@ class BookPopupViewController: UIViewController, UITextViewDelegate, UIPopoverPr
             }
         }
     }
+    
+    func title(forEmptyDataSet scrollView: UIScrollView!) -> NSAttributedString! {
+        let text = "No categories have been selected for this item."
+        self.bookCategoryCollectionView.backgroundColor = UIColor.lightGray
+        let attribs = [
+            NSFontAttributeName: Constants.FONT.helvetica14,
+            NSForegroundColorAttributeName: UIColor.white
+        ]
+        
+        return NSAttributedString(string: text, attributes: attribs)
+    }
+    
+//    func description(forEmptyDataSet scrollView: UIScrollView!) -> NSAttributedString! {
+//        let text = "Must be a rare one."
+//        
+//        let para = NSMutableParagraphStyle()
+//        para.lineBreakMode = NSLineBreakMode.byWordWrapping
+//        para.alignment = NSTextAlignment.center
+//        
+//        let attribs = [
+//            NSFontAttributeName: Constants.FONT.helvetica14,
+//            NSForegroundColorAttributeName: UIColor.lightGray,
+//            NSParagraphStyleAttributeName: para
+//        ]
+//        
+//        return NSAttributedString(string: text, attributes: attribs)
+//    }
  
 
 }

@@ -9,7 +9,7 @@
 import UIKit
 import DZNEmptyDataSet
     
-class SearchViewController: UIViewController, UICollectionViewDelegate, UICollectionViewDataSource, UISearchBarDelegate, ProfileSelectDelegate, UIGestureRecognizerDelegate, UICollectionViewDelegateFlowLayout, FilterSelectCellDelegate, DZNEmptyDataSetSource, DZNEmptyDataSetDelegate{
+class SearchViewController: UIViewController, UICollectionViewDelegate, UICollectionViewDataSource, UISearchBarDelegate, ProfileSelectDelegate, UIGestureRecognizerDelegate, UICollectionViewDelegateFlowLayout, FilterSelectCellDelegate, DZNEmptyDataSetSource, DZNEmptyDataSetDelegate {
     
     @IBOutlet var filterCollectionView: UICollectionView!
     @IBOutlet var searchCollectionView: UICollectionView!
@@ -263,6 +263,7 @@ class SearchViewController: UIViewController, UICollectionViewDelegate, UICollec
         cell.ownerAvatar.clipsToBounds = true
         cell.addGestureRecognizer(avatarGestureRecognizer)
         if let bookCategory = book["category"] as? [String]{
+            cell.categories = bookCategory
             if bookCategory.contains("FREE"){
                 cell.priceLabel.createFreeLabel()
             }
@@ -533,6 +534,7 @@ class SearchViewController: UIViewController, UICollectionViewDelegate, UICollec
         bookPopupInfo.ownerLocation = cell.location
         bookPopupInfo.bookInformation = cell.itemDescription
         bookPopupInfo.bookCondition = cell.condition
+        bookPopupInfo.categoriesToPass = cell.categories
     }
     
     @IBAction func unwindToSearch(segue: UIStoryboardSegue) {}

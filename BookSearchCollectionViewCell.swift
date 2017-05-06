@@ -46,6 +46,9 @@ class BookSearchCollectionViewCell: UICollectionViewCell, UIGestureRecognizerDel
     // Description or information about the sell/trade
     var itemDescription : String?
     
+    // Book Categories
+    var categories: [String] = []
+    
     // Id of the book owner
     var ownerId : Int?
     
