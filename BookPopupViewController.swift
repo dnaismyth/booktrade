@@ -238,22 +238,25 @@ class BookPopupViewController: UIViewController, UITextViewDelegate, UIPopoverPr
         }
         
         if(segue.identifier == "editBookSegue"){
-            let controller = segue.destination as! BookPostingTableViewController
-            controller.segueFromController = "BookPopupViewController"
-            self.setEditInformation(controller: controller)
+            let controller = segue.destination as! EditBookViewController
+            let book: [String: AnyObject] = self.buildEditInformation()
+            controller.book = book
         }
     }
     
-    private func setEditInformation(controller: BookPostingTableViewController){
-        controller.authorHolder = self.authorLabel.text
-        controller.titleHolder = self.bookTitle.text
-        controller.categoriesToPass = self.bookCategories
-        controller.condition = self.bookCondition
-        controller.priceToPass = self.priceLabel.text
-        controller.informationToPass = self.bookInformation
+    private func buildEditInformation() -> [String: AnyObject]{
+        var book: [String: AnyObject] = ["title": self.bookTitle.text as AnyObject,
+                                         "author": self.authorLabel.text as AnyObject,
+                                         "categories": self.bookCategories as AnyObject,
+                                         "condition": self.bookCondition as AnyObject,
+                                         "price": self.priceLabel.text as AnyObject,
+                                         "information": self.bookInformation as AnyObject]
+    
         if(self.barcodeToPass != nil){
-            controller.isbnHolder = self.barcodeToPass!
+            book["barcode"] = self.barcodeToPass! as AnyObject
         }
+        
+        return book
     }
     
     private func passBookInformation(vc : MoreBookInfoViewController){

@@ -83,4 +83,12 @@ class BookService {
         }
     }
     
+    /// Update a book by it's provided id
+    public func updateBook(token: String, bookId: String, book: [String: AnyObject], completed: @escaping FinishedFetchingData){
+        let url: String = Constants.API.updateBookPosting.replacingOccurrences(of: "{bookId}", with: bookId)
+        PutRequest().jsonPut(postUrl: url, token: token, body: book) { (dictionary) in
+            completed(dictionary)
+        }
+    }
+    
 }
