@@ -31,6 +31,7 @@ class SearchViewController: UIViewController, UICollectionViewDelegate, UICollec
     var numCells : Int = 0
     var numBooksInResults : Int?
     var reachedEndOfBookResults : Bool = false
+    var filterCollectionViewIsShowing: Bool = false
     
     // Flag for empty results
     var emptyResults: Bool = false
@@ -98,7 +99,9 @@ class SearchViewController: UIViewController, UICollectionViewDelegate, UICollec
                 self.filterContent.append(filter as String)
             }
         }
-        self.slideDownSearchCollection()
+        if(!self.filterCollectionViewIsShowing){
+            self.slideDownSearchCollection()
+        }
         self.filterCollectionView.reloadData()
     }
     
@@ -490,6 +493,7 @@ class SearchViewController: UIViewController, UICollectionViewDelegate, UICollec
             self.searchCollectionView.frame = CGRect(x: 0, y: frame.minY + 35, width: frame.width, height: frame.height)
         }) { (finished) in
             self.filterCollectionView.isHidden = false
+            self.filterCollectionViewIsShowing = true
         }
     }
     
@@ -499,6 +503,7 @@ class SearchViewController: UIViewController, UICollectionViewDelegate, UICollec
             let frame = self.searchCollectionView.frame
             self.searchCollectionView.frame = CGRect(x: 0, y: frame.minY - 35, width: frame.width, height: frame.height)
         }) { (finished) in
+            self.filterCollectionViewIsShowing = false
             print(finished)
         }
     }
@@ -535,6 +540,11 @@ class SearchViewController: UIViewController, UICollectionViewDelegate, UICollec
         bookPopupInfo.bookInformation = cell.itemDescription
         bookPopupInfo.bookCondition = cell.condition
         bookPopupInfo.categoriesToPass = cell.categories
+        bookPopupInfo.priceToPass = cell.priceLabel.text
+        bookPopupInfo.postingCreatedDate = cell.uploadedTime.text
+        if(cell.barcode != nil){
+            bookPopupInfo.barcodeToPass = cell.barcode!
+        }
     }
     
     @IBAction func unwindToSearch(segue: UIStoryboardSegue) {}

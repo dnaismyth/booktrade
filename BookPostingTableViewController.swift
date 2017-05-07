@@ -15,7 +15,13 @@ class BookPostingTableViewController: UITableViewController {
     
     let userDefaults = Foundation.UserDefaults.standard
     let PROFILE_INDEX : Int = 3
-        
+    
+    /** Variables passed from bookpopupview to edit a book*/
+    var priceToPass: String?
+    var categoriesToPass: [String]?
+    var informationToPass: String?
+    /**                                                   */
+    
     var imageHolder : UIImage?
     var tmbImageUrl : String?   // thumbnail image url
     var mainImageUrl : String?  // main image url (larger)
@@ -31,6 +37,7 @@ class BookPostingTableViewController: UITableViewController {
     let currencyFormatter = NumberFormatter()
     let categoriesAvail : [String] = ["CHILDREN", "FICTION", "NON_FICTION", "TEXTBOOK"]
     var categories : [String] = []
+    var segueFromController: String?
     
     // Properties for the case where the image has been selected from camera or library
     var isFromCamera : Bool?
@@ -43,6 +50,7 @@ class BookPostingTableViewController: UITableViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        self.setRightBarButtonItem()
         self.categoryTableView.delegate = self
         self.categoryTableView.dataSource = self
         // Uncomment the following line to preserve selection between presentations
@@ -55,6 +63,21 @@ class BookPostingTableViewController: UITableViewController {
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
+    }
+    
+    private func setRightBarButtonItem(){
+        if(segueFromController != nil && segueFromController == "BookPopupViewController"){
+            self.navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Done", style: .done, target: self, action: #selector(updateBookPosting))
+        }
+    }
+    
+    @objc private func updateBookPosting(){
+        print("Updating book")
+        
+    }
+    
+    func fillInPreviousBookInfo(book: [String: AnyObject]){
+        
     }
 
     // MARK: - Table view data source

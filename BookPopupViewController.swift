@@ -18,6 +18,7 @@ class BookPopupViewController: UIViewController, UITextViewDelegate, UIPopoverPr
 
     // Passed through from previous view controller
     var categoriesToPass: [String]?
+    var barcodeToPass: String?
     var authorToPass : String?
     var titleToPass : String?
     var coverImageToPass : UIImage?
@@ -27,9 +28,11 @@ class BookPopupViewController: UIViewController, UITextViewDelegate, UIPopoverPr
     var ownerLocation : String?
     var bookInformation : String?
     var bookCondition : String?
+    var postingCreatedDate: String?
     var ownerAvatarToPass : String?
     var currentBookId : Int?
     var bookCategories: [String] = []
+    var bookIsFree: Bool = false
     let commentTextPlaceholder : String = "Interested?  Send a message..."
     
     @IBOutlet weak var bookCoverImage: UIImageView!
@@ -48,22 +51,22 @@ class BookPopupViewController: UIViewController, UITextViewDelegate, UIPopoverPr
         self.bookCategoryCollectionView.dataSource = self
         self.bookCategoryCollectionView.emptyDataSetSource = self
         self.bookCategoryCollectionView.emptyDataSetDelegate = self
+        self.hideKeyboardWhenTappedAround()
         commentTextView.delegate = self
         commentTextView.text = self.commentTextPlaceholder
         commentTextView.textColor = UIColor.lightGray
-        commentTextView.becomeFirstResponder()
         let currUserId : String = userDefaults.string(forKey: Constants.USER_DEFAULTS.userIdKey)!
         if(ownerIdToPass == Int(currUserId)){
             self.navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .edit, target: self, action: #selector(editBookPosting))
         }
-        
+        // Do any additional setup after loading the view.
         // Move views up when keyboard is showing.
         NotificationCenter.default.addObserver(self, selector: #selector(self.keyboardWillShow), name: NSNotification.Name.UIKeyboardWillShow, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(self.keyboardWillHide), name: NSNotification.Name.UIKeyboardWillHide, object: nil)
-        // Do any additional setup after loading the view.
     }
     
     override func viewDidAppear(_ animated: Bool) {
+       
     }
 
     override func didReceiveMemoryWarning() {
@@ -73,11 +76,12 @@ class BookPopupViewController: UIViewController, UITextViewDelegate, UIPopoverPr
     
     func editBookPosting(){
         print("Edit book posting!")
+        performSegue(withIdentifier: "editBookSegue", sender: self)
     }
     
     func keyboardWillShow(notification: NSNotification) {
         if let keyboardSize = (notification.userInfo?[UIKeyboardFrameEndUserInfoKey] as? NSValue)?.cgRectValue {
-            if self.view.frame.origin.y == 0{
+            if self.view.frame.origin.y == 0 {
                 self.view.frame.origin.y -= (keyboardSize.height)
             }
         }
@@ -92,6 +96,9 @@ class BookPopupViewController: UIViewController, UITextViewDelegate, UIPopoverPr
     }
     
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+        if(self.bookCategories.contains("FREE")){
+            return self.bookCategories.count - 1
+        }
         return self.bookCategories.count
     }
     
@@ -99,8 +106,10 @@ class BookPopupViewController: UIViewController, UITextViewDelegate, UIPopoverPr
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "categoryTagCell", for: indexPath) as! TagCollectionViewCell
         let tag: String = self.bookCategories[indexPath.item]
         print(tag)
-        cell.tagLabel.text = "#".appending(tag)
-        cell.tagLabel.sizeToFit()
+        if(tag != "FREE"){
+            cell.tagLabel.text = "#".appending(tag)
+            cell.tagLabel.sizeToFit()
+        }
         return cell
     }
     
@@ -163,7 +172,20 @@ class BookPopupViewController: UIViewController, UITextViewDelegate, UIPopoverPr
         
         
         if(categoriesToPass != nil){
+            if categoriesToPass!.contains("FREE"){
+                bookIsFree = true
+            }
             self.bookCategories = categoriesToPass!
+        }
+        
+        if(postingCreatedDate != nil){
+            self.createdDateLabel.text = postingCreatedDate
+        }
+        
+        if(priceToPass != nil){
+            priceLabel.text = priceToPass
+        } else if (bookIsFree){
+            priceLabel.createFreeLabel()
         }
     }
     
@@ -214,6 +236,24 @@ class BookPopupViewController: UIViewController, UITextViewDelegate, UIPopoverPr
                 controller?.permittedArrowDirections = UIPopoverArrowDirection.init(rawValue: 0)
             }
         }
+        
+        if(segue.identifier == "editBookSegue"){
+            let controller = segue.destination as! BookPostingTableViewController
+            controller.segueFromController = "BookPopupViewController"
+            self.setEditInformation(controller: controller)
+        }
+    }
+    
+    private func setEditInformation(controller: BookPostingTableViewController){
+        controller.authorHolder = self.authorLabel.text
+        controller.titleHolder = self.bookTitle.text
+        controller.categoriesToPass = self.bookCategories
+        controller.condition = self.bookCondition
+        controller.priceToPass = self.priceLabel.text
+        controller.informationToPass = self.bookInformation
+        if(self.barcodeToPass != nil){
+            controller.isbnHolder = self.barcodeToPass!
+        }
     }
     
     private func passBookInformation(vc : MoreBookInfoViewController){
@@ -227,6 +267,10 @@ class BookPopupViewController: UIViewController, UITextViewDelegate, UIPopoverPr
         
         if(bookInformation != nil){
             vc.informationHolder = bookInformation!
+        }
+        
+        if(barcodeToPass != nil){
+            //TODO: pass through barcode to label
         }
     }
     

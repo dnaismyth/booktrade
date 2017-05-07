@@ -233,6 +233,8 @@ class ScanViewController: UIViewController, AVCaptureMetadataOutputObjectsDelega
                 bookPostingView.isbnHolder = self.capturedISBN!
             }
             bookPostingView.imageHolder = self.bookConfirmationPopup.coverImage.image
+            
+            bookPostingView.segueFromController = "ScanViewController"
         }
     }
     
