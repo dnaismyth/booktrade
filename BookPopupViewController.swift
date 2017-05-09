@@ -250,7 +250,8 @@ class BookPopupViewController: UIViewController, UITextViewDelegate, UIPopoverPr
                                          "categories": self.bookCategories as AnyObject,
                                          "condition": self.bookCondition as AnyObject,
                                          "price": self.priceLabel.text as AnyObject,
-                                         "information": self.bookInformation as AnyObject]
+                                         "information": self.bookInformation as AnyObject,
+                                         "id": self.currentBookId! as AnyObject]
     
         if(self.barcodeToPass != nil){
             book["barcode"] = self.barcodeToPass! as AnyObject
