@@ -17,6 +17,8 @@ class EditBookViewController: UITableViewController {
     var bookDescription: String?
     var condition: String?
     var category: [String] = []
+    var freeIsSelected: Bool = false
+    var indexPathOfPreviouslySelectedRow: IndexPath?
 
     @IBOutlet var bookTitle: UITextField!
     @IBOutlet var barcode: UITextField!
@@ -26,6 +28,9 @@ class EditBookViewController: UITableViewController {
     @IBOutlet var nonFictionCell: UITableViewCell!
     @IBOutlet var fictionCell: UITableViewCell!
     @IBOutlet var textbookCell: UITableViewCell!
+    @IBOutlet var freeBookCell: UITableViewCell!
+    
+    let categoriesAvail : [String] = ["CHILDREN", "FICTION", "NON_FICTION", "TEXTBOOK"]
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -40,6 +45,72 @@ class EditBookViewController: UITableViewController {
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
+    }
+    
+    override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        let cell = self.tableView.cellForRow(at: indexPath)
+        
+        switch(indexPath.section){
+        case 1:
+            if(isCategory(identifier: (cell?.restorationIdentifier)!)){
+                self.buildCategories(cell: cell)
+            }
+        case 2:
+            if let previousIndexPath = self.indexPathOfPreviouslySelectedRow {
+                self.tableView.deselectRow(at: previousIndexPath, animated: false)
+                let previousCell = tableView.cellForRow(at: previousIndexPath)
+                previousCell?.accessoryType = .none
+                previousCell?.tintColor = UIColor.white
+                previousCell?.textLabel?.textColor = Constants.COLOR.iron
+                previousCell?.backgroundColor = UIColor.white
+            }
+            self.indexPathOfPreviouslySelectedRow = indexPath
+            if(cell?.restorationIdentifier == "freeBookCell"){
+                self.freeBookCell.backgroundColor = Constants.COLOR.freeGreen
+                self.freeBookCell.accessoryType = .none
+                self.freeBookCell.textLabel?.textColor = UIColor.white
+                self.freeIsSelected = true
+            } else {
+                // design price cell here if necessary
+                self.freeIsSelected = false
+            }
+            //self.tableView.cellForRow(at: indexPath)?.accessoryType = UITableViewCellAccessoryType.checkmark
+        default:
+            break
+        }
+        
+        if(cell?.restorationIdentifier == "additionalInfo"){
+            performSegue(withIdentifier: "editAdditionalInfoSegue", sender: self)
+        }
+        
+    }
+    
+    override func tableView(_ tableView: UITableView, didDeselectRowAt indexPath: IndexPath) {
+        let cell = self.tableView.cellForRow(at: indexPath)
+        if(isCategory(identifier: (cell?.restorationIdentifier)!)){
+            if let indexToRemove = category.index(of: (cell?.restorationIdentifier)!){
+                category.remove(at: indexToRemove)
+                cell!.backgroundColor = UIColor.white
+                cell!.accessoryType = .none
+                cell!.textLabel?.textColor = Constants.COLOR.iron
+            }
+        }
+    }
+    
+    func buildCategories(cell: UITableViewCell?){
+        if(cell != nil && cell?.restorationIdentifier != nil){
+            cell!.isSelected = true
+            self.setCategoryDisplay(cell: cell!)
+            category.append(cell!.restorationIdentifier!)
+        }
+    }
+    
+    func isCategory(identifier : String) -> Bool {
+        if(self.categoriesAvail.contains(identifier)){
+            return true
+        }
+        
+        return false
     }
     
     func setBookFields(){
