@@ -19,6 +19,9 @@ class EditBookViewController: UITableViewController {
     var category: [String] = []
     var freeIsSelected: Bool = false
     var indexPathOfPreviouslySelectedRow: IndexPath?
+    
+    let freeIndexPath = IndexPath(row: 1, section: 2)
+    let priceIndexPath = IndexPath(row: 0, section: 2)
 
     @IBOutlet var bookTitle: UITextField!
     @IBOutlet var barcode: UITextField!
@@ -65,11 +68,9 @@ class EditBookViewController: UITableViewController {
                 previousCell?.backgroundColor = UIColor.white
             }
             self.indexPathOfPreviouslySelectedRow = indexPath
+            print(indexPath)
             if(cell?.restorationIdentifier == "freeBookCell"){
-                self.freeBookCell.backgroundColor = Constants.COLOR.freeGreen
-                self.freeBookCell.accessoryType = .none
-                self.freeBookCell.textLabel?.textColor = UIColor.white
-                self.freeIsSelected = true
+                self.formatFreeCell()
             } else {
                 // design price cell here if necessary
                 self.freeIsSelected = false
@@ -83,6 +84,13 @@ class EditBookViewController: UITableViewController {
             performSegue(withIdentifier: "editAdditionalInfoSegue", sender: self)
         }
         
+    }
+    
+    func formatFreeCell(){
+        self.freeBookCell.backgroundColor = Constants.COLOR.freeGreen
+        self.freeBookCell.accessoryType = .none
+        self.freeBookCell.textLabel?.textColor = UIColor.white
+        self.freeIsSelected = true
     }
     
     override func tableView(_ tableView: UITableView, didDeselectRowAt indexPath: IndexPath) {
@@ -118,10 +126,20 @@ class EditBookViewController: UITableViewController {
             bookId = book!["id"] as? String
             bookTitle.text = book!["title"] as? String
             author.text = book!["author"] as? String
-            price.text = book!["price"] as? String
             barcode.text = book!["barcode"] as? String
             if let categories = book!["categories"] as? [String] {
                 self.category = categories
+            }
+            
+            if let bookPrice = book!["price"] as? String {
+                print(bookPrice)
+                if bookPrice == "Free"{
+                    self.indexPathOfPreviouslySelectedRow = self.freeIndexPath
+                    self.formatFreeCell()
+                } else {
+                    self.indexPathOfPreviouslySelectedRow = self.priceIndexPath
+                    price.text = bookPrice
+                }
             }
             
             if let bookCondition = book!["condition"] as? String {
